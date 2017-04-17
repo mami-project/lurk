@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 )
 
 func initTempDb() (*sql.DB, string, error) {
@@ -13,7 +14,9 @@ func initTempDb() (*sql.DB, string, error) {
 		return nil, "", err
 	}
 
-	return DbInit(tmpDbFile.Name()), tmpDbFile.Name(), nil
+	db, err := DbInit(tmpDbFile.Name())
+
+	return db, tmpDbFile.Name(), err
 }
 
 func TestInitDB(t *testing.T) {
@@ -92,5 +95,11 @@ func TestDbGetRegistrationById(t *testing.T) {
 
 	if reg.CertURL != "" {
 		t.Errorf("want: certURL=\"\", got certURL=%s", reg.CertURL)
+	}
+
+	// Want a reasonably recent timestamp
+	delta := reg.CreationDate.Sub(time.Now()) / time.Second
+	if delta < -5 {
+		t.Errorf("want creation date at most 5s in the past, got: %v", delta)
 	}
 }

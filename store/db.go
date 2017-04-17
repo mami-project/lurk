@@ -7,12 +7,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func DbInit(filepath string) *sql.DB {
+func DbInit(filepath string) (*sql.DB, error) {
+
 	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return db
+
+	return db, nil
 }
 
 func DbCreateRegistrationTable(db *sql.DB) error {
@@ -21,9 +23,9 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 		id        INTEGER PRIMARY KEY AUTOINCREMENT,
 		status    TEXT NOT NULL DEFAULT "new",
 		csr       BLOB,
-		created   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		completed TIMESTAMP DEFAULT NULL,
-		expires   TIMESTAMP DEFAULT NULL,
+		created   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		completed DATETIME DEFAULT NULL,
+		expires   DATETIME DEFAULT NULL,
 		lifetime  INTEGER,
 		certURL   TEXT NOT NULL DEFAULT ""
 
@@ -37,7 +39,8 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 	return err
 }
 
-// Return the (unique) identifier associated to the added record
+// Return the (unique) identifier associated to the added record, or the empty
+// string on error
 func DbAddRegistration(db *sql.DB, csr string, lifetime uint) (string, error) {
 	sql_additem := "INSERT INTO registration(csr, lifetime) VALUES(?, ?)"
 
@@ -63,12 +66,25 @@ func DbAddRegistration(db *sql.DB, csr string, lifetime uint) (string, error) {
 }
 
 func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
-	sql_get_registration_by_id := "SELECT status, certURL FROM registration WHERE Id = ?"
+	sql_get_registration_by_id := `
+    SELECT id,
+           status,
+		   csr,
+		   created,
+		   completed,
+		   expires,
+		   lifetime,
+           certURL
+      FROM registration
+     WHERE id = ?
+	`
 
 	reg := Registration{}
 
 	err := db.QueryRow(sql_get_registration_by_id, id).
-		Scan(&reg.Status, &reg.CertURL)
+		Scan(&reg.Id, &reg.Status, &reg.CSR, &reg.CreationDate,
+			&reg.CompletionDate, &reg.ExpirationDate, &reg.Lifetime,
+			&reg.CertURL)
 
 	if err != nil {
 		return nil, err
