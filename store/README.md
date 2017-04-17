@@ -14,29 +14,28 @@ Registrations have the following layout:
 
 ## lurk server -> store
 - save new registration
- - in: csr, lifetime
- - out: record id
+  - in: csr, lifetime
+  - out: record id
 
 - fetch registration by id
- - in: id
- - out: the complete registration record
+  - in: id
+  - out: the complete registration record
 
 ## acme client -> store
 - fetch oldest pending
- - in: nothing
- - out: a complete registration record
+  - in: nothing
+  - out: a complete registration record
 
 - finalise
- - in: id, status, STAR crt URL (opt, if !failed), lifetime (opt, if !failed)
- - out: nothing
+  - in: id, status, STAR crt URL (opt, if !failed), lifetime (opt, if !failed)
+  - out: nothing
 
 # SQLite
 ```
 $ sqlite
 sqlite> .mode column
 sqlite> .headers on
-sqlite> .read registration.sql
-[sqlite> .read populate_test.sql]
+sqlite> SELECT * FROM registration;
 ```
 
 ## go-sqlite3 dependency
