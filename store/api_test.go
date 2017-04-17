@@ -4,6 +4,8 @@ import (
 	"testing"
 )
 
+// TODO remove test DB at the end of each cycle
+
 func TestNewRegistration(t *testing.T) {
 	err := Init("test")
 	if err != nil {
