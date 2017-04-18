@@ -8,7 +8,6 @@ import (
 )
 
 func DbInit(filepath string) (*sql.DB, error) {
-
 	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
 		return nil, err
@@ -92,32 +91,78 @@ func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
 	return &reg, nil
 }
 
-// TODO mark registration as in-progress (wrap SELECT and UPDATE in one transaction)
-func DbGetNewRegistration(db *sql.DB) (*Registration, error) {
-	sql_query := `
-	   SELECT id,
-	          status,
-	          csr,
-	          created,
-	          completed,
-	          expires,
-	          lifetime,
-	          certURL
-	     FROM registration
-	    WHERE status = "new"
-	 ORDER BY created DESC
-	`
-	reg := Registration{}
-
-	err := db.QueryRow(sql_query).
-		Scan(&reg.Id, &reg.Status, &reg.CSR, &reg.CreationDate,
-			&reg.CompletionDate, &reg.ExpirationDate, &reg.Lifetime,
-			&reg.CertURL)
+func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {
+	tx, err := db.Begin()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return &reg, nil
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+		return
+	}()
+
+	sql_select_oldest_waiting := `
+	  SELECT id,
+	         status,
+	         csr,
+			 created,
+			 completed,
+			 expires,
+			 lifetime,
+			 certURL
+	    FROM registration
+	   WHERE status = "new"
+	ORDER BY created DESC
+	   LIMIT 1
+	`
+
+	// Get the oldest waiting registration; the query will return
+	// at most one result.
+	var rows *sql.Rows
+
+	if rows, err = tx.Query(sql_select_oldest_waiting); err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	if !rows.Next() {
+		if rows.Err() != nil {
+			return
+		}
+		// Nothing to dequeue
+		// TODO make sure reg is nil
+		return
+	}
+
+	reg = new(Registration)
+
+	// Copy results in to the Registration struct
+	err = rows.Scan(&reg.Id, &reg.Status, &reg.CSR,
+		&reg.CreationDate, &reg.CompletionDate,
+		&reg.ExpirationDate, &reg.Lifetime, &reg.CertURL)
+
+	// Atomically update the status to work-in-progress
+	sql_update_status_to_wip := `
+	UPDATE registration
+	   SET status = "wip"
+	 WHERE id = ?
+	`
+
+	_, err = tx.Exec(sql_update_status_to_wip, reg.Id)
+	if err != nil {
+		return
+	}
+
+	// update reg.Status and return
+	reg.Status = "wip"
+
+	return
 }
 
 // TODO add tests

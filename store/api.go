@@ -2,12 +2,12 @@ package lurkstore
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 )
 
 var db *sql.DB
 
-// TODO make backend choice pluggable
 func Init(filename string) error {
 	var err error
 
@@ -26,7 +26,31 @@ func Init(filename string) error {
 	return nil
 }
 
-// Store new registration
+// TODO make backend choice pluggable
+func Init2(filename string) (err error) {
+	db, err := DbInit(filename)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("DB: %v", db)
+
+	defer func() {
+		if err != nil {
+			_ = os.Remove(filename)
+			return
+		}
+		return
+	}()
+
+	err = DbCreateRegistrationTable(db)
+
+	fmt.Println("ERR: %v", err)
+
+	return
+}
+
+// Store a new registration
 // Returns the unique id for the newly created record
 func NewRegistration(csr string, lifetime uint) (string, error) {
 	return DbAddRegistration(db, csr, lifetime)
@@ -37,9 +61,10 @@ func GetRegistrationById(id string) (*Registration, error) {
 	return DbGetRegistrationById(db, id)
 }
 
-// Fetch the oldest registration in state "new" and mark it as "work-in-progress"
-func WorkOnNewRegistration() (*Registration, error) {
-	return DbGetNewRegistration(db)
+// Fetch the oldest registration in state "new" (if one exists) and mark it
+// as "work-in-progress"
+func DequeueRegistration() (*Registration, error) {
+	return DbDequeueRegistration(db)
 }
 
 // Mark a work-in-progress as successfully completed

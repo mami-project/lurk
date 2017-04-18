@@ -46,37 +46,61 @@ func TestGetRegistrationById(t *testing.T) {
 	}
 }
 
-func TestWorkOnNewRegistration(t *testing.T) {
+func TestDequeueRegistration(t *testing.T) {
 	_ = Init(dbfile)
 	defer os.Remove(dbfile)
 
-	wanted_csr := "an older csr not yet processed"
+	wanted_csr1 := "an older csr not yet processed"
+	wanted_csr2 := "a newer csr not yet processed"
+	wanted_status := "wip"
 
-	_, err := NewRegistration(wanted_csr, 1010)
+	_, err := NewRegistration(wanted_csr1, 1010)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
 
-	_, err = NewRegistration("a newer csr not yet processed", 2020)
+	_, err = NewRegistration(wanted_csr2, 2020)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
 
-	got, err := WorkOnNewRegistration()
+	// Dequeue the first registration request
+	got, err := DequeueRegistration()
 	if err != nil {
-		t.Errorf("WorkOnNewRegistration returned %v", err)
+		t.Errorf("DequeueRegistration returned %v", err)
 	}
 
-	if got.CSR != wanted_csr {
-		t.Errorf("CSR mismatch: got %s, want %s)", got.CSR, wanted_csr)
+	if got.CSR != wanted_csr1 {
+		t.Errorf("CSR mismatch: got %s, want %s)", got.CSR, wanted_csr1)
 	}
 
-	// TODO check status is now "work-in-progress"
+	if got.Status != wanted_status {
+		t.Errorf("Status mismatch: got %s, want %s)", got.Status, wanted_status)
+	}
+
+	// Dequeue the second registration request
+	got, err = DequeueRegistration()
+	if err != nil {
+		t.Errorf("DequeueRegistration returned %v", err)
+	}
+
+	if got.CSR != wanted_csr2 {
+		t.Errorf("CSR mismatch: got %s, want %s)", got.CSR, wanted_csr2)
+	}
+
+	if got.Status != wanted_status {
+		t.Errorf("Status mismatch: got %s, want %s)", got.Status, wanted_status)
+	}
+
+	got, err = DequeueRegistration()
+	if got != nil || err != nil {
+		t.Errorf("Expecting (nil, nil), got (%v, %v)", got, err)
+	}
 }
 
-func TestUpdateSuccessfulRegistration(t *testing.T) {
-	_ = Init(dbfile)
-	defer os.Remove(dbfile)
-
-	// TODO
-}
+//func TestUpdateSuccessfulRegistration(t *testing.T) {
+//	_ = Init(dbfile)
+//	defer os.Remove(dbfile)
+//
+//	// TODO
+//}
