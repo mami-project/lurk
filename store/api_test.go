@@ -1,16 +1,19 @@
 package lurkstore
 
 import (
+	"os"
 	"testing"
 )
 
-// TODO remove test DB at the end of each cycle
+const dbfile = "./test.db"
 
 func TestNewRegistration(t *testing.T) {
-	err := Init("test")
+	err := Init(dbfile)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
+
+	defer os.Remove(dbfile)
 
 	_, err = NewRegistration("test csr", 1234)
 	if err != nil {
@@ -19,7 +22,8 @@ func TestNewRegistration(t *testing.T) {
 }
 
 func TestGetRegistrationById(t *testing.T) {
-	Init("test")
+	_ = Init(dbfile)
+	defer os.Remove(dbfile)
 
 	id, err := NewRegistration("another csr", 7890)
 	if err != nil {
@@ -34,31 +38,45 @@ func TestGetRegistrationById(t *testing.T) {
 	}
 
 	if got.CSR != want.CSR {
-		t.Errorf("CSR mismatch")
+		t.Errorf("CSR mismatch: got %s, want %s", got.CSR, want.CSR)
 	}
 
 	if got.Lifetime != want.Lifetime {
-		t.Errorf("CSR mismatch")
+		t.Errorf("Lifetime mismatch: got %d, want %d", got.Lifetime, want.Lifetime)
 	}
 }
 
-// TODO
-func TestGetNewRegistration(t *testing.T) {
-	Init("test")
+func TestWorkOnNewRegistration(t *testing.T) {
+	_ = Init(dbfile)
+	defer os.Remove(dbfile)
 
-	want := Registration{}
-	got, _ := GetNewRegistration()
-	if got != want {
-		t.Errorf("Got: %r, want: %r.", got, want)
+	wanted_csr := "an older csr not yet processed"
+
+	_, err := NewRegistration(wanted_csr, 1010)
+	if err != nil {
+		t.Errorf("NewRegistration returned %v", err)
 	}
+
+	_, err = NewRegistration("a newer csr not yet processed", 2020)
+	if err != nil {
+		t.Errorf("NewRegistration returned %v", err)
+	}
+
+	got, err := WorkOnNewRegistration()
+	if err != nil {
+		t.Errorf("WorkOnNewRegistration returned %v", err)
+	}
+
+	if got.CSR != wanted_csr {
+		t.Errorf("CSR mismatch: got %s, want %s)", got.CSR, wanted_csr)
+	}
+
+	// TODO check status is now "work-in-progress"
 }
 
-// TODO
-func TestFinaliseRegistration(t *testing.T) {
-	Init("test")
+func TestUpdateSuccessfulRegistration(t *testing.T) {
+	_ = Init(dbfile)
+	defer os.Remove(dbfile)
 
-	err := FinaliseRegistration("an id", "done", "http://acme.example.com/wxyz/crt", 1234)
-	if err.Error() == "eheh" {
-		t.Errorf("Expecting error")
-	}
+	// TODO
 }

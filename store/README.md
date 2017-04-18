@@ -25,9 +25,14 @@ Registrations have the following layout:
 - fetch oldest pending
   - in: nothing
   - out: a complete registration record
+  - side-effect: registration moves to state work-in-progress
 
-- finalise
-  - in: id, status, STAR crt URL (opt, if !failed), lifetime (opt, if !failed)
+- finalise success
+  - in: id, STAR crt URL, lifetime, visibility ttl
+  - out: nothing
+
+- finalise failure
+  - in: id, visibility ttl
   - out: nothing
 
 # SQLite

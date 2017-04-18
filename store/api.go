@@ -2,7 +2,7 @@ package lurkstore
 
 import (
 	"database/sql"
-	"errors"
+	"os"
 )
 
 var db *sql.DB
@@ -13,11 +13,13 @@ func Init(filename string) error {
 
 	db, err = DbInit(filename)
 	if err != nil {
+		_ = os.Remove(filename)
 		return err
 	}
 
 	err = DbCreateRegistrationTable(db)
 	if err != nil {
+		_ = os.Remove(filename)
 		return err
 	}
 
@@ -35,14 +37,19 @@ func GetRegistrationById(id string) (*Registration, error) {
 	return DbGetRegistrationById(db, id)
 }
 
-// Fetch the oldest registration in state "new"
-func GetNewRegistration() (Registration, error) {
-	// TODO
-	return Registration{}, nil
+// Fetch the oldest registration in state "new" and mark it as "work-in-progress"
+func WorkOnNewRegistration() (*Registration, error) {
+	return DbGetNewRegistration(db)
 }
 
-// Finalise a work-in-progress
-func FinaliseRegistration(id string, status string, certURL string, lifetime uint) error {
-	// TODO
-	return errors.New("hehe")
+// Mark a work-in-progress as successfully completed
+// TODO ttl of the registration
+func UpdateSuccessfulRegistration(id string, certURL string, lifetime uint) error {
+	return DbUpdateSuccessfulRegistration(db, id, certURL, lifetime)
+}
+
+// Mark a work-in-progress as failed
+// TODO ttl of the registration
+func UpdateFailedRegistration(id string) error {
+	return DbUpdateFailedRegistration(db, id)
 }
