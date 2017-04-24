@@ -3,6 +3,7 @@ package lurkstore
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 const dbfile = "./test.db"
@@ -59,6 +60,8 @@ func TestDequeueRegistration(t *testing.T) {
 		t.Errorf("NewRegistration returned %v", err)
 	}
 
+	time.Sleep(time.Second)
+
 	_, err = NewRegistration(wanted_csr2, 2020)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
@@ -98,9 +101,22 @@ func TestDequeueRegistration(t *testing.T) {
 	}
 }
 
-//func TestUpdateSuccessfulRegistration(t *testing.T) {
-//	_ = Init(dbfile)
-//	defer os.Remove(dbfile)
-//
-//	// TODO
-//}
+func TestUpdateSuccessfulRegistration(t *testing.T) {
+	_ = Init(dbfile)
+	defer os.Remove(dbfile)
+
+	_, err := NewRegistration("a csr", 123)
+	if err != nil {
+		t.Errorf("NewRegistration returned %v", err)
+	}
+
+	got, err := DequeueRegistration()
+	if err != nil {
+		t.Errorf("DequeueRegistration returned %v", err)
+	}
+
+	err = UpdateSuccessfulRegistration(got.Id, "http://acme.example.com/a-cert", got.Lifetime, "+3 days")
+	if err != nil {
+		t.Errorf("UpdateSuccessfulRegistration returned %v", err)
+	}
+}

@@ -1,6 +1,9 @@
 package lurkstore
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type Registration struct {
 	Id             string
@@ -11,4 +14,5 @@ type Registration struct {
 	ExpirationDate *time.Time // may be Null
 	Lifetime       uint
 	CertURL        string
+	ErrMsg         sql.NullString
 }

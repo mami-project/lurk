@@ -2,51 +2,14 @@ package lurkstore
 
 import (
 	"database/sql"
-	"fmt"
-	"os"
 )
 
 var db *sql.DB
 
-func Init(filename string) error {
-	var err error
-
-	db, err = DbInit(filename)
-	if err != nil {
-		_ = os.Remove(filename)
-		return err
-	}
-
-	err = DbCreateRegistrationTable(db)
-	if err != nil {
-		_ = os.Remove(filename)
-		return err
-	}
-
-	return nil
-}
-
 // TODO make backend choice pluggable
-func Init2(filename string) (err error) {
-	db, err := DbInit(filename)
-	if err != nil {
-		return
-	}
 
-	fmt.Println("DB: %v", db)
-
-	defer func() {
-		if err != nil {
-			_ = os.Remove(filename)
-			return
-		}
-		return
-	}()
-
-	err = DbCreateRegistrationTable(db)
-
-	fmt.Println("ERR: %v", err)
-
+func Init(filename string) (err error) {
+	db, err = DbInit(filename)
 	return
 }
 
@@ -68,13 +31,13 @@ func DequeueRegistration() (*Registration, error) {
 }
 
 // Mark a work-in-progress as successfully completed
-// TODO ttl of the registration
-func UpdateSuccessfulRegistration(id string, certURL string, lifetime uint) error {
-	return DbUpdateSuccessfulRegistration(db, id, certURL, lifetime)
+func UpdateSuccessfulRegistration(id string, certURL string, lifetime uint,
+	ttl string) error {
+	return DbUpdateSuccessfulRegistration(db, id, certURL, lifetime, ttl)
 }
 
 // Mark a work-in-progress as failed
-// TODO ttl of the registration
-func UpdateFailedRegistration(id string) error {
-	return DbUpdateFailedRegistration(db, id)
+// TODO control how long the registration is visible
+func UpdateFailedRegistration(id string, errmsg string) error {
+	return DbUpdateFailedRegistration(db, id, errmsg)
 }

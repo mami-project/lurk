@@ -7,13 +7,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func DbInit(filepath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", filepath)
+// return a handle to an "open" DB
+// the supplied dataSource is a driver-specific data source name;
+// in case of SQLite, it's an existing local file.
+func DbInit(dataSource string) (db *sql.DB, err error) {
+	db, err = sql.Open("sqlite3", dataSource)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return db, nil
+	err = DbCreateRegistrationTable(db)
+
+	return
 }
 
 func DbCreateRegistrationTable(db *sql.DB) error {
@@ -26,7 +31,8 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 		completed DATETIME DEFAULT NULL,
 		expires   DATETIME DEFAULT NULL,
 		lifetime  INTEGER,
-		certURL   TEXT NOT NULL DEFAULT ""
+		certURL   TEXT NOT NULL DEFAULT "",
+		errmsg    TEXT
 
 		CHECK (status IN ("new", "wip", "done", "failed")),
 		CHECK (lifetime > 0)
@@ -72,7 +78,8 @@ func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
 	       completed,
 	       expires,
 	       lifetime,
-	       certURL
+	       certURL,
+		   errmsg
 	  FROM registration
 	 WHERE id = ?
 	`
@@ -82,7 +89,7 @@ func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
 	err := db.QueryRow(sql_query, id).
 		Scan(&reg.Id, &reg.Status, &reg.CSR, &reg.CreationDate,
 			&reg.CompletionDate, &reg.ExpirationDate, &reg.Lifetime,
-			&reg.CertURL)
+			&reg.CertURL, &reg.ErrMsg)
 
 	if err != nil {
 		return nil, err
@@ -114,10 +121,11 @@ func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {
 			 completed,
 			 expires,
 			 lifetime,
-			 certURL
+			 certURL,
+			 errmsg
 	    FROM registration
 	   WHERE status = "new"
-	ORDER BY created DESC
+	ORDER BY created ASC
 	   LIMIT 1
 	`
 
@@ -145,7 +153,8 @@ func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {
 	// Copy results in to the Registration struct
 	err = rows.Scan(&reg.Id, &reg.Status, &reg.CSR,
 		&reg.CreationDate, &reg.CompletionDate,
-		&reg.ExpirationDate, &reg.Lifetime, &reg.CertURL)
+		&reg.ExpirationDate, &reg.Lifetime, &reg.CertURL,
+		&reg.ErrMsg)
 
 	// Atomically update the status to work-in-progress
 	sql_update_status_to_wip := `
@@ -165,15 +174,15 @@ func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {
 	return
 }
 
-// TODO add tests
 func DbUpdateSuccessfulRegistration(db *sql.DB, id string, certURL string,
-	lifetime uint) error {
+	lifetime uint, ttl string) error {
 	sql_query := `
 	UPDATE registration
 	   SET status = "done",
 	       certURL = ?,
 	       lifetime = ?,
-		   completed = CURRENT_TIMESTAMP
+		   completed = CURRENT_TIMESTAMP,
+		   expires = datetime(CURRENT_TIMESTAMP, ?)
 	 WHERE id = ? AND
 	       status = "wip"
 	`
@@ -185,7 +194,7 @@ func DbUpdateSuccessfulRegistration(db *sql.DB, id string, certURL string,
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(certURL, lifetime, id)
+	_, err = stmt.Exec(certURL, lifetime, ttl, id)
 	if err != nil {
 		return err
 	}
@@ -193,12 +202,12 @@ func DbUpdateSuccessfulRegistration(db *sql.DB, id string, certURL string,
 	return nil
 }
 
-// TODO add tests
-func DbUpdateFailedRegistration(db *sql.DB, id string) error {
+func DbUpdateFailedRegistration(db *sql.DB, id string, errmsg string) error {
 	sql_query := `
 	UPDATE registration
 	   SET status = "failed",
-		   completed = CURRENT_TIMESTAMP
+		   completed = CURRENT_TIMESTAMP,
+		   errmsg = ?
 	 WHERE id = ? AND
 	       status = "wip"
 	`
@@ -210,7 +219,7 @@ func DbUpdateFailedRegistration(db *sql.DB, id string) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(errmsg, id)
 	if err != nil {
 		return err
 	}
