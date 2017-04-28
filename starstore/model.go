@@ -1,22 +1,34 @@
-package lurkstore
+package starstore
 
 import (
 	"database/sql"
+	"errors"
 )
 
 var db *sql.DB
 
 // TODO make backend choice pluggable
 
-func Init(filename string) (err error) {
-	db, err = DbInit(filename)
+func Init(store string) (err error) {
+	db, err = DbInit(store)
 	return
 }
 
 // Store a new registration
 // Returns the unique id for the newly created record
-func NewRegistration(csr string, lifetime uint) (string, error) {
-	return DbAddRegistration(db, csr, lifetime)
+func (r *Registration) NewRegistration() (string, error) {
+	// Validate parameters
+	if r.Lifetime == 0 {
+		r.Lifetime = DefaultLifetime
+	}
+
+	if r.CSR == "" {
+		return "", errors.New("empty CSR")
+	}
+
+	// TODO(tho) CSR validation
+
+	return r.DbAddRegistration(db)
 }
 
 // Return the Registration record associated to the supplied id, if found
@@ -45,4 +57,9 @@ func UpdateFailedRegistration(id string, errmsg string) error {
 // Not part of the API -- diagnostics/introspection only
 func ListRegistrations() ([]Registration, error) {
 	return DbListRegistrations(db)
+}
+
+// Not part of the API -- testing only
+func RemoveAllRegistrations() error {
+	return DbRemoveAll(db)
 }

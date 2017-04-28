@@ -1,4 +1,4 @@
-package lurkstore
+package starstore
 
 import (
 	"database/sql"
@@ -63,7 +63,8 @@ func TestDbAddRegistration(t *testing.T) {
 
 	defer os.Remove(fname)
 
-	_, err = DbAddRegistration(db, "a csr", 1234)
+	r := Registration{CSR: "a csr", Lifetime: 1234}
+	_, err = r.DbAddRegistration(db)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -77,7 +78,8 @@ func TestDbGetRegistrationById(t *testing.T) {
 
 	defer os.Remove(fname)
 
-	id, err := DbAddRegistration(db, "a csr", 1234)
+	r := Registration{CSR: "a csr", Lifetime: 1234}
+	id, err := r.DbAddRegistration(db)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -113,7 +115,8 @@ func TestDbUpdateSuccessfulRegistration(t *testing.T) {
 
 	defer os.Remove(fname)
 
-	_, err = DbAddRegistration(db, "a csr", 1234)
+	r := Registration{CSR: "a csr", Lifetime: 1234}
+	_, err = r.DbAddRegistration(db)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -163,7 +166,8 @@ func TestDbUpdateFailedRegistration(t *testing.T) {
 
 	defer os.Remove(fname)
 
-	_, err = DbAddRegistration(db, "a csr", 1234)
+	r := Registration{CSR: "a csr", Lifetime: 1234}
+	_, err = r.DbAddRegistration(db)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -216,7 +220,7 @@ func TestDbListRegistrations(t *testing.T) {
 	}
 
 	for _, r := range wanted {
-		_, err = DbAddRegistration(db, r.CSR, r.Lifetime)
+		_, err = r.DbAddRegistration(db)
 		if err != nil {
 			t.Errorf("%s", err)
 		}

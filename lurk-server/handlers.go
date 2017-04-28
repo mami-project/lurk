@@ -3,81 +3,63 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
+	"../starstore"
 )
 
+const HelloSTAR string = "Hello STAR!"
+
+// TODO configuration
+var DefaultSTARHost string = "todo-setme.example.net"
+
+func replyError(res http.ResponseWriter, code int, message string) {
+	body, _ := json.Marshal(map[string]string{"error": message})
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(code)
+	res.Write(body)
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello LURK!\n")
+	fmt.Fprint(w, HelloSTAR)
+}
+
+func registrationURL(req *http.Request, id string) string {
+	host := req.Header.Get("Host")
+	if host == "" {
+		host = DefaultSTARHost
+	}
+
+	return "https://" + host + req.URL.Path + "/" + id
+}
+
+func CreateNewRegistration(res http.ResponseWriter, req *http.Request) {
+	var r starstore.Registration
+
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&r); err != nil {
+		replyError(res, http.StatusBadRequest, err.Error())
+	}
+
+	defer req.Body.Close()
+
+	id, err := r.NewRegistration()
+	if err != nil {
+		replyError(res, http.StatusBadRequest, err.Error())
+	}
+
+	res.Header().Set("Location", registrationURL(req, id))
+	res.WriteHeader(http.StatusCreated)
 }
 
 // Return the list of all registration requests
 func RegistrationsList(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(regs); err != nil {
-		panic(err)
-	}
+	// TODO(tho)
 }
 
 // Create a new registration object
-func RegistrationCreate(w http.ResponseWriter, r *http.Request) {
-	var reg LurkRegistration
-
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	if err := r.Body.Close(); err != nil {
-		panic(err)
-	}
-
-	if err := json.Unmarshal(body, &reg); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return
-	}
-
-	if err := CreateLurkRegistration(reg); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// done
-	w.WriteHeader(http.StatusCreated)
-}
 
 func RegistrationProgress(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	var registrationId int
-	var err error
-	if registrationId, err = strconv.Atoi(vars["registrationId"]); err != nil {
-		// TODO(tho) better error handling?
-		panic(err)
-	}
-
-	reg := LookupLurkRegistration(registrationId)
-
-	if reg.Id > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(reg); err != nil {
-			panic(err)
-		}
-		return
-	}
-
-	// If we didn't find it, 404
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotFound)
-
-	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"}); err != nil {
-		panic(err)
-	}
+	// TODO(tho)
 }

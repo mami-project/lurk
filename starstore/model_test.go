@@ -1,4 +1,4 @@
-package lurkstore
+package starstore
 
 import (
 	"os"
@@ -16,7 +16,8 @@ func TestNewRegistration(t *testing.T) {
 
 	defer os.Remove(dbfile)
 
-	_, err = NewRegistration("test csr", 1234)
+	r := Registration{CSR: "a csr", Lifetime: 1234}
+	_, err = r.NewRegistration()
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -26,7 +27,8 @@ func TestGetRegistrationById(t *testing.T) {
 	_ = Init(dbfile)
 	defer os.Remove(dbfile)
 
-	id, err := NewRegistration("another csr", 7890)
+	r := Registration{CSR: "another csr", Lifetime: 7890}
+	id, err := r.NewRegistration()
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -55,14 +57,16 @@ func TestDequeueRegistration(t *testing.T) {
 	wanted_csr2 := "a newer csr not yet processed"
 	wanted_status := "wip"
 
-	_, err := NewRegistration(wanted_csr1, 1010)
+	r := Registration{CSR: wanted_csr1, Lifetime: 1010}
+	_, err := r.NewRegistration()
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
 
 	time.Sleep(time.Second)
 
-	_, err = NewRegistration(wanted_csr2, 2020)
+	r = Registration{CSR: wanted_csr2, Lifetime: 2020}
+	_, err = r.NewRegistration()
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -105,7 +109,8 @@ func TestUpdateSuccessfulRegistration(t *testing.T) {
 	_ = Init(dbfile)
 	defer os.Remove(dbfile)
 
-	_, err := NewRegistration("a csr", 123)
+	r := Registration{CSR: "a csr", Lifetime: 123}
+	_, err := r.NewRegistration()
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}

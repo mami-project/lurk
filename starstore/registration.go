@@ -1,9 +1,11 @@
-package lurkstore
+package starstore
 
 import (
 	"database/sql"
 	"time"
 )
+
+const DefaultLifetime = 365
 
 type Registration struct {
 	Id             string

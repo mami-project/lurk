@@ -1,4 +1,4 @@
-package lurkstore
+package starstore
 
 import (
 	"database/sql"
@@ -46,7 +46,7 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 
 // Return the (unique) identifier associated to the added record, or the empty
 // string on error
-func DbAddRegistration(db *sql.DB, csr string, lifetime uint) (string, error) {
+func (r *Registration) DbAddRegistration(db *sql.DB) (string, error) {
 	sql_query := "INSERT INTO registration(csr, lifetime) VALUES(?, ?)"
 
 	stmt, err := db.Prepare(sql_query)
@@ -56,7 +56,7 @@ func DbAddRegistration(db *sql.DB, csr string, lifetime uint) (string, error) {
 
 	defer stmt.Close()
 
-	res, err := stmt.Exec(csr, lifetime)
+	res, err := stmt.Exec(r.CSR, r.Lifetime)
 	if err != nil {
 		return "", err
 	}
@@ -258,4 +258,18 @@ func DbListRegistrations(db *sql.DB) ([]Registration, error) {
 	}
 
 	return registrations, nil
+}
+
+// Remove all rows and reset the auto-increment id
+func DbRemoveAll(db *sql.DB) error {
+	sql_query := `
+	DELETE
+	  FROM registration;
+	DELETE
+	  FROM sqlite_sequence
+	 WHERE name='registration'
+	`
+	_, err := db.Exec(sql_query)
+
+	return err
 }

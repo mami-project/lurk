@@ -9,31 +9,31 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
-type Routes []Route
+const NewRegistrationPath = "/star/registration"
 
-var routes = Routes{
+var routes = []Route{
 	Route{
-		"Index",
-		"GET",
-		"/",
-		Index,
+		Name:        "Index",
+		Method:      "GET",
+		Pattern:     "/",
+		HandlerFunc: Index,
 	},
 	Route{
-		"LURK Registrations Index",
-		"GET",
-		"/lurk/registrations",
-		RegistrationsList,
+		Name:        "STAR Registrations Index",
+		Method:      "GET",
+		Pattern:     "/star/registrations",
+		HandlerFunc: RegistrationsList,
 	},
 	Route{
-		"RegistrationProgress",
-		"GET",
-		"/lurk/registration/{registrationId}",
-		RegistrationProgress,
+		Name:        "RegistrationProgress",
+		Method:      "GET",
+		Pattern:     "/star/registration/{registrationId}",
+		HandlerFunc: RegistrationProgress,
 	},
 	Route{
-		"LURK Registration Request",
-		"POST",
-		"/lurk/registration",
-		RegistrationCreate,
+		Name:        "STAR Registration Request",
+		Method:      "POST",
+		Pattern:     NewRegistrationPath,
+		HandlerFunc: CreateNewRegistration,
 	},
 }
