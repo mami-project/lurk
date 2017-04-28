@@ -36,7 +36,7 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 
 		CHECK (status IN ("new", "wip", "done", "failed")),
 		CHECK (lifetime > 0)
-	);
+	)
 	`
 
 	_, err := db.Exec(sql_query)
@@ -225,4 +225,37 @@ func DbUpdateFailedRegistration(db *sql.DB, id string, errmsg string) error {
 	}
 
 	return nil
+}
+
+func DbListRegistrations(db *sql.DB) ([]Registration, error) {
+	// Include registrations that have not been processed yet
+	// (i.e., "expires IS NULL")
+	sql_query := `
+	SELECT *
+	  FROM registration
+	 WHERE expires IS NULL OR
+	       expires > CURRENT_TIMESTAMP;
+	`
+
+	rows, err := db.Query(sql_query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	registrations := []Registration{}
+
+	for rows.Next() {
+		var r Registration
+		err := rows.Scan(&r.Id, &r.Status, &r.CSR, &r.CreationDate,
+			&r.CompletionDate, &r.ExpirationDate, &r.Lifetime, &r.CertURL,
+			&r.ErrMsg)
+		if err != nil {
+			return nil, err
+		}
+		registrations = append(registrations, r)
+	}
+
+	return registrations, nil
 }

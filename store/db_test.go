@@ -195,3 +195,39 @@ func TestDbUpdateFailedRegistration(t *testing.T) {
 		t.Errorf("want: errmsg %s, got %s", errMsg, reg.ErrMsg.String)
 	}
 }
+
+func TestDbListRegistrations(t *testing.T) {
+	db, fname, err := setupTempDb()
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+
+	defer os.Remove(fname)
+
+	var wanted = []Registration{
+		Registration{
+			CSR:      "CSR 1",
+			Lifetime: 1,
+		},
+		Registration{
+			CSR:      "CSR 2",
+			Lifetime: 2,
+		},
+	}
+
+	for _, r := range wanted {
+		_, err = DbAddRegistration(db, r.CSR, r.Lifetime)
+		if err != nil {
+			t.Errorf("%s", err)
+		}
+	}
+
+	got, err := DbListRegistrations(db)
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+
+	if len(got) != len(wanted) {
+		t.Errorf("wanted %d results, got %d", len(wanted), len(got))
+	}
+}

@@ -41,3 +41,8 @@ func UpdateSuccessfulRegistration(id string, certURL string, lifetime uint,
 func UpdateFailedRegistration(id string, errmsg string) error {
 	return DbUpdateFailedRegistration(db, id, errmsg)
 }
+
+// Not part of the API -- diagnostics/introspection only
+func ListRegistrations() ([]Registration, error) {
+	return DbListRegistrations(db)
+}
