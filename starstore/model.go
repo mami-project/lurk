@@ -32,8 +32,8 @@ func (r *Registration) NewRegistration() (string, error) {
 }
 
 // Return the Registration record associated to the supplied id, if found
-func GetRegistrationById(id string) (*Registration, error) {
-	return DbGetRegistrationById(db, id)
+func (r *Registration) GetRegistrationById(id string) error {
+	return r.DbGetRegistrationById(db, id)
 }
 
 // Fetch the oldest registration in state "new" (if one exists) and mark it

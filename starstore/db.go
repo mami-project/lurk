@@ -69,7 +69,7 @@ func (r *Registration) DbAddRegistration(db *sql.DB) (string, error) {
 	return strconv.FormatInt(id, 10), nil
 }
 
-func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
+func (r *Registration) DbGetRegistrationById(db *sql.DB, id string) error {
 	sql_query := `
 	SELECT id,
 	       status,
@@ -84,18 +84,16 @@ func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
 	 WHERE id = ?
 	`
 
-	reg := Registration{}
-
 	err := db.QueryRow(sql_query, id).
-		Scan(&reg.Id, &reg.Status, &reg.CSR, &reg.CreationDate,
-			&reg.CompletionDate, &reg.ExpirationDate, &reg.Lifetime,
-			&reg.CertURL, &reg.ErrMsg)
+		Scan(&r.Id, &r.Status, &r.CSR, &r.CreationDate,
+			&r.CompletionDate, &r.ExpirationDate, &r.Lifetime,
+			&r.CertURL, &r.ErrMsg)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &reg, nil
+	return nil
 }
 
 func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {
@@ -208,8 +206,7 @@ func DbUpdateFailedRegistration(db *sql.DB, id string, errmsg string) error {
 	   SET status = "failed",
 		   completed = CURRENT_TIMESTAMP,
 		   errmsg = ?
-	 WHERE id = ? AND
-	       status = "wip"
+	 WHERE id = ?
 	`
 
 	stmt, err := db.Prepare(sql_query)

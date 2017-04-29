@@ -84,21 +84,22 @@ func TestDbGetRegistrationById(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	reg, err := DbGetRegistrationById(db, id)
+	r = Registration{}
+	err = r.DbGetRegistrationById(db, id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if reg.Status != "new" {
-		t.Errorf("want: status=new, got status=%s", reg.Status)
+	if r.Status != "new" {
+		t.Errorf("want: status=new, got status=%s", r.Status)
 	}
 
-	if reg.CertURL != "" {
-		t.Errorf("want: certURL=\"\", got certURL=%s", reg.CertURL)
+	if r.CertURL != "" {
+		t.Errorf("want: certURL=\"\", got certURL=%s", r.CertURL)
 	}
 
 	// Want a reasonably recent timestamp
-	delta := reg.CreationDate.Sub(time.Now()) / time.Second
+	delta := r.CreationDate.Sub(time.Now()) / time.Second
 	if delta < -5 {
 		t.Errorf("want creation date at most 5s in the past, got: %v", delta)
 	}
@@ -135,26 +136,27 @@ func TestDbUpdateSuccessfulRegistration(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	reg, err = DbGetRegistrationById(db, reg.Id)
+	r = Registration{}
+	err = r.DbGetRegistrationById(db, reg.Id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if reg.Status != "done" {
-		t.Errorf("want: status done, got %s", reg.Status)
+	if r.Status != "done" {
+		t.Errorf("want: status done, got %s", r.Status)
 	}
 
-	delta := reg.ExpirationDate.Sub(*reg.CompletionDate)
+	delta := r.ExpirationDate.Sub(*r.CompletionDate)
 	if delta != 48*time.Hour {
 		t.Errorf("want: delta %s, got %v", ttl, delta)
 	}
 
-	if reg.Lifetime != lifetime {
-		t.Errorf("want: lifetime %d, got %d", lifetime, reg.Lifetime)
+	if r.Lifetime != lifetime {
+		t.Errorf("want: lifetime %d, got %d", lifetime, r.Lifetime)
 	}
 
-	if reg.CertURL != certURL {
-		t.Errorf("want: cert URL %s, got %s", lifetime, reg.Lifetime)
+	if r.CertURL != certURL {
+		t.Errorf("want: cert URL %s, got %s", lifetime, r.Lifetime)
 	}
 }
 
@@ -184,19 +186,20 @@ func TestDbUpdateFailedRegistration(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	reg, err = DbGetRegistrationById(db, reg.Id)
+	r = Registration{}
+	err = r.DbGetRegistrationById(db, reg.Id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if reg.Status != "failed" {
-		t.Errorf("want: status failed, got %s", reg.Status)
+	if r.Status != "failed" {
+		t.Errorf("want: status failed, got %s", r.Status)
 	}
 
-	if !reg.ErrMsg.Valid {
+	if !r.ErrMsg.Valid {
 		t.Errorf("want: errmsg %s, got NULL", errMsg)
-	} else if reg.ErrMsg.String != errMsg {
-		t.Errorf("want: errmsg %s, got %s", errMsg, reg.ErrMsg.String)
+	} else if r.ErrMsg.String != errMsg {
+		t.Errorf("want: errmsg %s, got %s", errMsg, r.ErrMsg.String)
 	}
 }
 

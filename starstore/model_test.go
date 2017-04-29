@@ -35,7 +35,8 @@ func TestGetRegistrationById(t *testing.T) {
 
 	want := Registration{Status: "new", CSR: "another csr", Lifetime: 7890}
 
-	got, err := GetRegistrationById(id)
+	got := Registration{}
+	err = got.GetRegistrationById(id)
 	if err != nil {
 		t.Errorf("GetRegistrationById returned %v", err)
 	}
