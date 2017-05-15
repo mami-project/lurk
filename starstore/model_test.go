@@ -17,7 +17,7 @@ func TestNewRegistration(t *testing.T) {
 	defer os.Remove(dbfile)
 
 	r := Registration{CSR: "a csr", Lifetime: 1234}
-	_, err = r.NewRegistration()
+	_, err = NewRegistration(r)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -28,15 +28,14 @@ func TestGetRegistrationById(t *testing.T) {
 	defer os.Remove(dbfile)
 
 	r := Registration{CSR: "another csr", Lifetime: 7890}
-	id, err := r.NewRegistration()
+	id, err := NewRegistration(r)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
 
 	want := Registration{Status: "new", CSR: "another csr", Lifetime: 7890}
 
-	got := Registration{}
-	err = got.GetRegistrationById(id)
+	got, err := GetRegistrationById(id)
 	if err != nil {
 		t.Errorf("GetRegistrationById returned %v", err)
 	}
@@ -59,7 +58,7 @@ func TestDequeueRegistration(t *testing.T) {
 	wanted_status := "wip"
 
 	r := Registration{CSR: wanted_csr1, Lifetime: 1010}
-	_, err := r.NewRegistration()
+	_, err := NewRegistration(r)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -67,7 +66,7 @@ func TestDequeueRegistration(t *testing.T) {
 	time.Sleep(time.Second)
 
 	r = Registration{CSR: wanted_csr2, Lifetime: 2020}
-	_, err = r.NewRegistration()
+	_, err = NewRegistration(r)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}
@@ -111,7 +110,7 @@ func TestUpdateSuccessfulRegistration(t *testing.T) {
 	defer os.Remove(dbfile)
 
 	r := Registration{CSR: "a csr", Lifetime: 123}
-	_, err := r.NewRegistration()
+	_, err := NewRegistration(r)
 	if err != nil {
 		t.Errorf("NewRegistration returned %v", err)
 	}

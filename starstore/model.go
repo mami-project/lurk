@@ -16,7 +16,7 @@ func Init(store string) (err error) {
 
 // Store a new registration
 // Returns the unique id for the newly created record
-func (r *Registration) NewRegistration() (string, error) {
+func NewRegistration(r Registration) (string, error) {
 	// Validate parameters
 	if r.Lifetime == 0 {
 		r.Lifetime = DefaultLifetime
@@ -28,12 +28,12 @@ func (r *Registration) NewRegistration() (string, error) {
 
 	// TODO(tho) CSR validation
 
-	return r.DbAddRegistration(db)
+	return DbAddRegistration(db, r)
 }
 
 // Return the Registration record associated to the supplied id, if found
-func (r *Registration) GetRegistrationById(id string) error {
-	return r.DbGetRegistrationById(db, id)
+func GetRegistrationById(id string) (*Registration, error) {
+	return DbGetRegistrationById(db, id)
 }
 
 // Fetch the oldest registration in state "new" (if one exists) and mark it

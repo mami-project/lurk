@@ -64,7 +64,7 @@ func TestDbAddRegistration(t *testing.T) {
 	defer os.Remove(fname)
 
 	r := Registration{CSR: "a csr", Lifetime: 1234}
-	_, err = r.DbAddRegistration(db)
+	_, err = DbAddRegistration(db, r)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -79,27 +79,26 @@ func TestDbGetRegistrationById(t *testing.T) {
 	defer os.Remove(fname)
 
 	r := Registration{CSR: "a csr", Lifetime: 1234}
-	id, err := r.DbAddRegistration(db)
+	id, err := DbAddRegistration(db, r)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	r = Registration{}
-	err = r.DbGetRegistrationById(db, id)
+	r2, err := DbGetRegistrationById(db, id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if r.Status != "new" {
-		t.Errorf("want: status=new, got status=%s", r.Status)
+	if r2.Status != "new" {
+		t.Errorf("want: status=new, got status=%s", r2.Status)
 	}
 
-	if r.CertURL != "" {
-		t.Errorf("want: certURL=\"\", got certURL=%s", r.CertURL)
+	if r2.CertURL != "" {
+		t.Errorf("want: certURL=\"\", got certURL=%s", r2.CertURL)
 	}
 
 	// Want a reasonably recent timestamp
-	delta := r.CreationDate.Sub(time.Now()) / time.Second
+	delta := r2.CreationDate.Sub(time.Now()) / time.Second
 	if delta < -5 {
 		t.Errorf("want creation date at most 5s in the past, got: %v", delta)
 	}
@@ -117,7 +116,7 @@ func TestDbUpdateSuccessfulRegistration(t *testing.T) {
 	defer os.Remove(fname)
 
 	r := Registration{CSR: "a csr", Lifetime: 1234}
-	_, err = r.DbAddRegistration(db)
+	_, err = DbAddRegistration(db, r)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -136,27 +135,26 @@ func TestDbUpdateSuccessfulRegistration(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	r = Registration{}
-	err = r.DbGetRegistrationById(db, reg.Id)
+	r2, err := DbGetRegistrationById(db, reg.Id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if r.Status != "done" {
-		t.Errorf("want: status done, got %s", r.Status)
+	if r2.Status != "done" {
+		t.Errorf("want: status done, got %s", r2.Status)
 	}
 
-	delta := r.ExpirationDate.Sub(*r.CompletionDate)
+	delta := r2.ExpirationDate.Sub(*r2.CompletionDate)
 	if delta != 48*time.Hour {
 		t.Errorf("want: delta %s, got %v", ttl, delta)
 	}
 
-	if r.Lifetime != lifetime {
-		t.Errorf("want: lifetime %d, got %d", lifetime, r.Lifetime)
+	if r2.Lifetime != lifetime {
+		t.Errorf("want: lifetime %d, got %d", lifetime, r2.Lifetime)
 	}
 
-	if r.CertURL != certURL {
-		t.Errorf("want: cert URL %s, got %s", lifetime, r.Lifetime)
+	if r2.CertURL != certURL {
+		t.Errorf("want: cert URL %s, got %s", lifetime, r2.Lifetime)
 	}
 }
 
@@ -169,7 +167,7 @@ func TestDbUpdateFailedRegistration(t *testing.T) {
 	defer os.Remove(fname)
 
 	r := Registration{CSR: "a csr", Lifetime: 1234}
-	_, err = r.DbAddRegistration(db)
+	_, err = DbAddRegistration(db, r)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -186,20 +184,19 @@ func TestDbUpdateFailedRegistration(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	r = Registration{}
-	err = r.DbGetRegistrationById(db, reg.Id)
+	r2, err := DbGetRegistrationById(db, reg.Id)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if r.Status != "failed" {
-		t.Errorf("want: status failed, got %s", r.Status)
+	if r2.Status != "failed" {
+		t.Errorf("want: status failed, got %s", r2.Status)
 	}
 
-	if !r.ErrMsg.Valid {
+	if !r2.ErrMsg.Valid {
 		t.Errorf("want: errmsg %s, got NULL", errMsg)
-	} else if r.ErrMsg.String != errMsg {
-		t.Errorf("want: errmsg %s, got %s", errMsg, r.ErrMsg.String)
+	} else if r2.ErrMsg.String != errMsg {
+		t.Errorf("want: errmsg %s, got %s", errMsg, r2.ErrMsg.String)
 	}
 }
 
@@ -223,7 +220,7 @@ func TestDbListRegistrations(t *testing.T) {
 	}
 
 	for _, r := range wanted {
-		_, err = r.DbAddRegistration(db)
+		_, err = DbAddRegistration(db, r)
 		if err != nil {
 			t.Errorf("%s", err)
 		}

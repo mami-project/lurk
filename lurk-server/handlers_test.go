@@ -45,7 +45,7 @@ func postRegistration(host string) *httptest.ResponseRecorder {
 	ct := "application/json"
 
 	json := `{
-		"csr": "...",
+		"csr": "5jNudRx6Ye4HzKEqT5...FS6aKdZeGsysoCo4H9P",
 		"lifetime": 365
 	}`
 	body := []byte(json)
@@ -173,17 +173,19 @@ func TestPollRegistrationStatusPending(t *testing.T) {
 		t.Errorf("want %d, got %d", http.StatusOK, res.Code)
 	}
 
-	// Retry-After
-	ra := res.Header().Get("Retry-After")
-	if ra == "" {
-		t.Errorf("no Retry-After header")
+	var m MsgRegistrationPending
+	err := json.Unmarshal(res.Body.Bytes(), &m)
+	if err != nil {
+		t.Errorf("decoding MsgRegistrationPending failed: %s", err)
 	}
 
 	// json.status == "pending"
-	var m map[string]string
-	json.Unmarshal(res.Body.Bytes(), &m)
-	if m["status"] != "pending" {
-		t.Errorf("want status=pending, got status=%s", m["status"])
+	if m.Status != "pending" {
+		t.Errorf("want status=pending, got status=%s", m.Status)
+	}
+
+	if m.RetryAfter != PollIntervalInSeconds {
+		t.Errorf("want retry-after=%d, got %s", PollIntervalInSeconds, m.Status)
 	}
 }
 
@@ -208,7 +210,8 @@ func TestPollRegistrationStatusFailed(t *testing.T) {
 	id := s[len(s)-1]
 
 	// Fail the registration
-	err := starstore.UpdateFailedRegistration(id, "a detailed description of the failure")
+	details := "a detailed description of the failure"
+	err := starstore.UpdateFailedRegistration(id, details)
 	if err != nil {
 		t.Errorf("unable to fail the transaction: %s", err)
 	}
@@ -222,15 +225,22 @@ func TestPollRegistrationStatusFailed(t *testing.T) {
 		t.Errorf("want %d, got %d", http.StatusOK, res.Code)
 	}
 
+	var m MsgRegistrationFailed
+	err = json.Unmarshal(res.Body.Bytes(), &m)
+	if err != nil {
+		t.Errorf("decoding MsgRegistrationFailed failed: %s", err)
+	}
+
 	// json.status == "failed"
-	var m map[string]string
-	json.Unmarshal(res.Body.Bytes(), &m)
-	if m["status"] != "failed" {
-		t.Errorf("want status=failed, got status=%s", m["status"])
+	if m.Status != "failed" {
+		t.Errorf("want status=failed, got status=%s", m.Status)
+	}
+
+	if m.Details != details {
+		t.Errorf("want details %s, got %s", m.Details)
 	}
 }
 
-// TODO cleanup -
 func TestPollRegistrationStatusSuccess(t *testing.T) {
 	starstore.RemoveAllRegistrations()
 
@@ -258,12 +268,13 @@ func TestPollRegistrationStatusSuccess(t *testing.T) {
 	}
 
 	if r.Id != id {
-		t.Errorf("want id %d, got id %d", id, r.Id)
+		t.Errorf("dequeuing: want id %d, got id %d", id, r.Id)
 	}
 
 	// Mark the registration as successfully completed
 	certURL := "http://acme.example.com/a-cert"
-	err = starstore.UpdateSuccessfulRegistration(id, certURL, 366, "+3 days")
+	lifetime := uint(366)
+	err = starstore.UpdateSuccessfulRegistration(id, certURL, lifetime, "+3 days")
 	if err != nil {
 		t.Errorf("unable to complete the transaction: %s", err)
 	}
@@ -277,17 +288,22 @@ func TestPollRegistrationStatusSuccess(t *testing.T) {
 		t.Errorf("want %d, got %d", http.StatusOK, res.Code)
 	}
 
+	var m MsgRegistrationDone
+	err = json.Unmarshal(res.Body.Bytes(), &m)
+	if err != nil {
+		t.Errorf("decoding MsgRegistrationDone failed: %s", err)
+	}
+
 	// json.status == "success"
-	var m map[string]string
-	json.Unmarshal(res.Body.Bytes(), &m)
-	if m["status"] != "success" {
-		t.Errorf("want status success, got %s", m["status"])
+	if m.Status != "success" {
+		t.Errorf("want status success, got %s", m.Status)
 	}
-	// XXX lifetime is a number, not a string
-	if m["lifetime"] != "366" {
-		t.Errorf("want lifetime 366, got %s", m["lifetime"])
+
+	if m.Lifetime != lifetime {
+		t.Errorf("want lifetime %d, got %d", lifetime, m.Lifetime)
 	}
-	if m["certificates"] != certURL {
-		t.Errorf("want certificates %s, got %s", certURL, m["certificates"])
+
+	if m.CertURL != certURL {
+		t.Errorf("want certificates %s, got %s", certURL, m.CertURL)
 	}
 }

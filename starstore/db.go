@@ -46,7 +46,7 @@ func DbCreateRegistrationTable(db *sql.DB) error {
 
 // Return the (unique) identifier associated to the added record, or the empty
 // string on error
-func (r *Registration) DbAddRegistration(db *sql.DB) (string, error) {
+func DbAddRegistration(db *sql.DB, r Registration) (string, error) {
 	sql_query := "INSERT INTO registration(csr, lifetime) VALUES(?, ?)"
 
 	stmt, err := db.Prepare(sql_query)
@@ -69,7 +69,9 @@ func (r *Registration) DbAddRegistration(db *sql.DB) (string, error) {
 	return strconv.FormatInt(id, 10), nil
 }
 
-func (r *Registration) DbGetRegistrationById(db *sql.DB, id string) error {
+// Return the (unique) identifier associated to the added record, or the empty
+// string on error
+func DbGetRegistrationById(db *sql.DB, id string) (*Registration, error) {
 	sql_query := `
 	SELECT id,
 	       status,
@@ -84,16 +86,18 @@ func (r *Registration) DbGetRegistrationById(db *sql.DB, id string) error {
 	 WHERE id = ?
 	`
 
+	var r Registration
+
 	err := db.QueryRow(sql_query, id).
 		Scan(&r.Id, &r.Status, &r.CSR, &r.CreationDate,
 			&r.CompletionDate, &r.ExpirationDate, &r.Lifetime,
 			&r.CertURL, &r.ErrMsg)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &r, nil
 }
 
 func DbDequeueRegistration(db *sql.DB) (reg *Registration, err error) {

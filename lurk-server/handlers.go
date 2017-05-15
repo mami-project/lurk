@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -13,72 +14,84 @@ import (
 
 const HelloSTAR string = "Hello STAR!"
 
-// TODO configuration
+// TODO move these to configuration
 var DefaultSTARHost string = "todo-setme.example.net"
-var PollIntervalInSeconds string = "10"
+var PollIntervalInSeconds uint64 = 10
+
+func internalError(res http.ResponseWriter, err string) {
+	log.Printf("[ERROR]: %s", err)
+	res.WriteHeader(http.StatusInternalServerError)
+}
 
 func replyError(res http.ResponseWriter, code int, message string) {
-	m := map[string]string{
-		"error": message,
+	body, err := json.Marshal(MsgError{message})
+	if err != nil {
+		internalError(res, fmt.Sprintf("json.Marshal failed: %s", err))
+		return
 	}
-
-	body, _ := json.Marshal(m)
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(code)
 	res.Write(body)
 }
 
-// TODO lifetime is a number, not a string
 // Expires header
-func replyDone(res http.ResponseWriter, r starstore.Registration) {
-	m := map[string]string{
-		"status":       "success",
-		"lifetime":     strconv.FormatUint(uint64(r.Lifetime), 10),
-		"certificates": r.CertURL,
+func replyDone(res http.ResponseWriter, r *starstore.Registration) {
+	body, err := json.Marshal(MsgRegistrationDone{"success", r.Lifetime, r.CertURL})
+	if err != nil {
+		internalError(res, fmt.Sprintf("json.Marshal failed: %s", err))
+		return
 	}
-
-	body, _ := json.Marshal(m)
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write(body)
 }
 
-// TODO add failure details?
-func replyFailed(res http.ResponseWriter) {
-	m := map[string]string{
-		"status": "failed",
+func replyFailed(res http.ResponseWriter, r *starstore.Registration) {
+	details := ""
+	if r.ErrMsg.Valid {
+		details = r.ErrMsg.String
 	}
 
-	body, _ := json.Marshal(m)
+	body, err := json.Marshal(MsgRegistrationFailed{"failed", details})
+	if err != nil {
+		internalError(res, fmt.Sprintf("json.Marshal failed: %s", err))
+		return
+	}
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write(body)
 }
 
-// TODO add c-c max-age (depends on retry-after)
+func maxAgeForPolling(pollInterval uint64) string {
+	return "max-age=" + strconv.FormatUint(pollInterval-1, 10)
+}
+
 func replyPending(res http.ResponseWriter) {
-	m := map[string]string{
-		"status": "pending",
+
+	body, err := json.Marshal(MsgRegistrationPending{"pending", PollIntervalInSeconds})
+	if err != nil {
+		internalError(res, fmt.Sprintf("json.Marshal failed: %s", err))
+		return
 	}
 
-	body, _ := json.Marshal(m)
-
+	// Set an explicit C-C=max-age to make sure cache expiration heuristics
+	// do not interfere with polling.
+	res.Header().Set("Cache-Control", maxAgeForPolling(PollIntervalInSeconds))
 	res.Header().Set("Content-Type", "application/json")
-	res.Header().Set("Retry-After", PollIntervalInSeconds)
 	res.WriteHeader(http.StatusOK)
 	res.Write(body)
 }
 
-func registrationURL(req *http.Request, id string) string {
-	// XXX this seems to contradict documentation:
-	// "For incoming requests, the Host header is promoted to the
-	//  Request.Host field and removed from the Header map."
-	host := req.Header.Get("Host")
+func assembleRegistrationURL(req *http.Request, id string) string {
+	host := req.Host
 	if host == "" {
-		host = DefaultSTARHost
+		host = req.Header.Get("Host")
+		if host == "" {
+			host = DefaultSTARHost
+		}
 	}
 
 	scheme := req.URL.Scheme
@@ -109,23 +122,21 @@ func CreateNewRegistration(res http.ResponseWriter, req *http.Request) {
 
 	defer req.Body.Close()
 
-	id, err := r.NewRegistration()
+	id, err := starstore.NewRegistration(r)
 	if err != nil {
 		replyError(res, http.StatusBadRequest, err.Error())
 	}
 
-	res.Header().Set("Location", registrationURL(req, id))
+	res.Header().Set("Location", assembleRegistrationURL(req, id))
 	res.WriteHeader(http.StatusCreated)
 }
 
 // Create a new registration object
 
 func PollRegistrationStatus(res http.ResponseWriter, req *http.Request) {
-	var r starstore.Registration
-
 	vars := mux.Vars(req)
 
-	err := r.GetRegistrationById(vars["id"])
+	r, err := starstore.GetRegistrationById(vars["id"])
 	if err != nil {
 		replyError(res, http.StatusBadRequest, err.Error())
 	}
@@ -138,11 +149,27 @@ func PollRegistrationStatus(res http.ResponseWriter, req *http.Request) {
 	case "done":
 		replyDone(res, r)
 	case "failed":
-		replyFailed(res)
+		replyFailed(res, r)
 	}
 }
 
-// Return the list of all registration requests
-func RegistrationsList(w http.ResponseWriter, r *http.Request) {
-	// TODO(tho)
+// Return the list of all registration requests (debug-only)
+func RegistrationsList(res http.ResponseWriter, req *http.Request) {
+	var rs []starstore.Registration
+
+	rs, err := starstore.ListRegistrations()
+	if err != nil {
+		internalError(res, fmt.Sprintf("list registration failed: %s", err))
+		return
+	}
+
+	body, err := json.Marshal(rs)
+	if err != nil {
+		internalError(res, fmt.Sprintf("json.Marshal failed: %s", err))
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write(body)
 }

@@ -9,7 +9,10 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
-const NewRegistrationPath = "/star/registration"
+const (
+	NewRegistrationPath   = "/star/registration"
+	ListRegistrationsPath = "/star/registrations"
+)
 
 var routes = []Route{
 	Route{
@@ -21,7 +24,7 @@ var routes = []Route{
 	Route{
 		Name:        "Index of fresh STAR Registrations",
 		Method:      "GET",
-		Pattern:     "/star/registrations",
+		Pattern:     ListRegistrationsPath,
 		HandlerFunc: RegistrationsList,
 	},
 	Route{
