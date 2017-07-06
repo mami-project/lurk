@@ -77,8 +77,10 @@ You will see a message: "Executing" (NOTE: If some pop up asks you to enter an e
 
 	*ffe6...is this example's certificate URI
 
-9. You can view the cert by doing:
-	openssl x509 -in myDer.der -inform der -text -noout
+9. You can view the cert doing one of these 2 commands:
+	openssl x509 -in myDer.der -inform der -text -noout //Text
+	openssl x509 -in myDer.der -inform der              //encoded64
+	
 STATUS
 
 After some time client will receive a message to do a GET to some direction, when the certificate is ready it will be there so the client can download it, if not it returns "in progress".
