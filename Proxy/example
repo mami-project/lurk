@@ -85,7 +85,7 @@ func addToCron(domainName string, lifeTime int) {
 
 }
 func post_completionURL() {
-        fmt.Println("Ejecutado")
+        fmt.Println("Executing")
         router := mux.NewRouter().StrictSlash(true)
         router.HandleFunc("/completionURL", answerAGet).Methods("GET")
         err := http.ListenAndServe(":9999", router)
@@ -122,7 +122,7 @@ func decodeCsr (csr string)(cmdS string) { /*Returns the csr as plain text*/
     return cmdS
 }
 func parseFieldsOfCsr(cmd string)(csrFields csr_struct) {  /*Returns and array with each important field of the csr in tmpCsr*/
-        fmt.Printf("String: %s FIN string", cmd)
+        //fmt.Printf("String: %s FIN string", cmd)
 
         g := strings.SplitN(cmd, "CN=", 2) // Keeps the common name field in g[1]
         f := strings.FieldsFunc(g[1], func(r rune) bool { //f is an array with the fields requested in csr_struct
@@ -142,7 +142,7 @@ func callCertbot(domainName string){
         if err != nil {
                 panic(err)
         }
-        fmt.Printf("Ejecucion finalizada %s",ex)
+        fmt.Printf("Execution ended %s",ex)
 
 }
 
