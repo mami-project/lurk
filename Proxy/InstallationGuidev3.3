@@ -59,7 +59,8 @@ HOW TO RUN A FULL SIMULATION
 3. Go to proxy as superuser, type in ~/certbot# source ./venv/bin/activate
 4. Then: export SERVER=http://172.17.0.4:4000/directory
 5. Now you are ready to go: go run example.go
-You will see a message: "Executing" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop example.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5)
+You will see a message: "Executing" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop example.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5,
+but i solved this so it shouldnt happen now for like 99% of the time)
 6. Go to client VM and POST at https://certProxy:443/star/registration (Dont forget to add certProxy to your /etc/hosts or type proxy's IP instead of the keyword).
 	For now the full command looks like this:
 		curl --cacert /usr/share/ca-certificates/mozilla/server.crt \
