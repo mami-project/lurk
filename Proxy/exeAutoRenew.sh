@@ -13,5 +13,6 @@ if date "+%d %m" | grep -q "$getDeadLineD $getDeadLineM"; then
         crontab -u root -l | grep -v "$domainName $getDeadLineD $getDeadLineM $crontaskID" | crontab -u root -
 else
         echo "Renews cert"
-        sh /root/certbot/certbot python main.py --webroot certonly -n -d $domainName
+        #TO DO
+        #sh /root/certbot/certbot python main.py --webroot certonly -n -d $domainName
 fi
