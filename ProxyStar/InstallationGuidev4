@@ -23,7 +23,7 @@ everything must be inside letsencrypt/boulder/, if you do "ls" there it must ret
 
 Prepare the Proxy: 
 
-- Go sudo -i and place there all the files in https://github.com/diegoDAguilar/MyProxy so that the end directory of files such as example.go and exeAutoRenew.sh is /root/
+- Go sudo -i and place there all the files in https://github.com/diegoDAguilar/MyProxy so that the end directory of files such as proxySTAR.go and exeAutoRenew.sh is /root/
 - Go to certbot/ and type: source ./venv/bin/activate (You always need this ON if you exit the vm)
 - Declare global environment:  export SERVER=http://172.17.0.4:4000/directory    (this is where Boulder is listening)
 - Install Go, my version is : go1.8.2 linux/amd64
@@ -58,8 +58,8 @@ HOW TO RUN A FULL SIMULATION
 
 3. Go to proxy as superuser, type in ~/certbot# source ./venv/bin/activate
 4. Then: export SERVER=http://172.17.0.4:4000/directory
-5. Now you are ready to go: go run example.go
-You will see a message: "Executing" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop example.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5)
+5. Now you are ready to go: go run proxySTAR.go
+You will see a message: "Executing" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop proxySTAR.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5)
 6. Go to client VM and POST at https://certProxy:443/star/registration (Dont forget to add certProxy to your /etc/hosts or type proxy's IP instead of the keyword).
 	For now the full command looks like this:
 		curl --cacert /usr/share/ca-certificates/mozilla/server.crt \
