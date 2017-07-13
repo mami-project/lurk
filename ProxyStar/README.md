@@ -2,9 +2,7 @@
 IMPORTANT: This just follows the execution. To install the proxy, do a simulation yourself or see 
 			other notes read first the InstallationGuide :)
 
-Boulder/STAR Server            
-DNO/ STAR Proxy              
-CDN/ Star Client
+Boulder/STAR Server             DNO/ STAR Proxy              CDN/ Star Client
 
 
 
@@ -22,7 +20,7 @@ Time 1:
 			"Content-Type: application/json" -X POST -d @fullCSR https://cert\
 			Proxy:443/star/registration
 
-	Proxy: example.go
+	Proxy: proxySTAR.go
 			function parseJsonPOST handles :443 /star/registration requests
 			
 			parseJsonPOST translates the block of data into a struct {csr,lifetime, validity}
@@ -46,7 +44,7 @@ Time 1:
 Time 2:
 
 
-	Proxy: example.go
+	Proxy: proxySTAR.go
 
 			function callCertbot runs cerbot application by passing the csr and the domain names as arguments.
 			It uses cerbotCall.sh
@@ -78,8 +76,8 @@ Time 3:
 
 Time 4: 
 
-The renewal is handled by proxySTAR.go together with a cronjob.
-When the cronjob executes, it first checks the date and kills himself if the lifetime has expired, else it uses the files 		under starCerts to renew the certificate and post it at the same URI.
+		The renewal is handled by proxySTAR.go together with a cronjob.
+		When the cronjob executes it first checks the date and kills himself if the lifetime has expired, else it uses the files under starCerts to renew the certificate and post it at the same URI.
 
 
 
