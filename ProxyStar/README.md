@@ -74,8 +74,10 @@ Time 3:
 		It stores the csr for renewals as well as the current cert, the validity (not the lifetime!) and the uri in a directory /starCerts
 		It downloads the certificate and then POSTs it into a randomly generated uuid that will be shown to the STAR client at /completionURL. If the client tries to reach /completionURL before the certificate ends it returns "in progress".
 
-Time 4: The renewal is handled by proxySTAR.go together with a cronjob.
-		When the cronjob executes it first checks the date and kills himself if the lifetime has expired, else it uses the files under starCerts to renew the certificate and post it at the same URI.
+Time 4: 
+
+The renewal is handled by proxySTAR.go together with a cronjob.
+When the cronjob executes, it first checks the date and kills himself if the lifetime has expired, else it uses the files 		under starCerts to renew the certificate and post it at the same URI.
 
 
 
