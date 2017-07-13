@@ -2,7 +2,9 @@
 IMPORTANT: This just follows the execution. To install the proxy, do a simulation yourself or see 
 			other notes read first the InstallationGuide :)
 
-Boulder/STAR Server             DNO/ STAR Proxy              CDN/ Star Client
+Boulder/STAR Server            
+DNO/ STAR Proxy              
+CDN/ Star Client
 
 
 
