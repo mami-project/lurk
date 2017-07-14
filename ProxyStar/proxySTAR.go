@@ -106,8 +106,9 @@ func post_cert () {
     if openPort != true {
         openPort = true
         err := http.ListenAndServe(":9500", nil)
-        if err != nil {
-        panic(err)
+       // err := http.ListenAndServe("9500", "server.crt", "server.key", nil) //Uncomment this and comment the previous one
+        if err != nil {                                                       //to make  retrieving the cert https.
+        panic(err)                                                            //It has been tested and it works! 
         }
     }
 
@@ -131,8 +132,9 @@ func post_completionURL() {
         router := mux.NewRouter().StrictSlash(true)
         router.HandleFunc("/completionURL", answerAGet).Methods("GET")
         err := http.ListenAndServe(":9999", router)
-        if err != nil{
-                panic(err)
+        //err := http.ListenAndServeTLS(":9999","server.crt", "server.key", router) //Uncomment this and comment the previous one
+        if err != nil{                                                              //to make getting the URI https.
+                panic(err)                                                          //It hasn't been tested YET
 
         }
 
