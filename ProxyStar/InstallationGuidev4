@@ -59,8 +59,8 @@ HOW TO RUN A FULL SIMULATION
 3. Go to proxy as superuser, type in ~/certbot# source ./venv/bin/activate
 4. Then: export SERVER=http://172.17.0.4:4000/directory
 5. Now you are ready to go: go run proxySTAR.go
-You will see a message: "Executing" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop proxySTAR.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5)
-6. Go to client VM and POST at https://certProxy:443/star/registration (Dont forget to add certProxy to your /etc/hosts or type proxy's IP instead of the keyword).
+You will see a message: "Proxy STAR ON" (NOTE: If some pop up asks you to enter an email to create an account just invent one. If some weird error happens then ^C to stop proxySTAR.go, go to certbot/certbot and type: "python main.py register" then you can repeat step 5)
+6. Go to client VM and POST at https://certProxy:443/star/registration (Dont forget to add certProxy to your /etc/hosts as the Proxy's IP).
 	For now the full command looks like this:
 		curl --cacert /usr/share/ca-certificates/mozilla/server.crt \
 		-H "Content-Type: application/json" -X POST -d \
@@ -71,21 +71,20 @@ You will see a message: "Executing" (NOTE: If some pop up asks you to enter an e
 		(subject name) plus lifetime and validity in format: 
 		{"csr":"----BEGIN CERT---\ngfdgfhdgjfh\nfdfjsdkfsd...--END CERT----","lifetime":365, "validity":24}
 
-7. The client will get the uri when it is ready using: curl http://192.168.122.125:9999/completionURL 
-7.5 The uri will be a uuid4
+7. The client will get the uri when it is ready using: curl --cacert /usr/share/ca-certificates/mozilla/server.crt https://certProxy:443/star/registration/0     //NOTE that this URI will be sent to the STAR client when all the csr fields are checked. 
+7.5 The message sent back when using this curl can be {pending} or {status, lifetime,the uuid4 that serves as URI}
 8. The client can retrieve the cert by using:
-	curl http://192.168.122.125:9500/586c4b2d-ad4d-4523-9c6b-934470be1c56
+	curl http://192.168.122.125:9500/609577eb-f47b-4443-8df6-ba926dbdcd6c
 
-	*586c...is this example's certificate URI
+	*609577eb...is this example's certificate URI
 
 
 9. To try the renewal yourself, first check with "crontab -l" that the renewal has been added, you can set the time to current time editing the crontable with "crontab -e" or try the execution just now if you go to script exeAutoRenew.sh, comment the if-else sentences so that the else body remains as the only option and then execute "sh exeAutoRenew bye.com 05 05 $cronTaskID" replacing $cronTaskID with the id of the certificate, for example 0 or 10 (the number are assigned in order, p.e. first cert is 0, second is 1...), you can check the cronTaskID of a certificate in /starCerts/links
 
 10. Then client can retrieve the new certificate from the same place: 
-	curl http://192.168.122.125:9500/586c4b2d-ad4d-4523-9c6b-934470be1c56
+	 curl --cacert /usr/share/ca-certificates/mozilla/server.crt https://certProxy:443/609577eb-f47b-4443-8df6-ba926dbdcd6c
 
 STATUS
 
-After some time client will receive a message to do a GET to some direction, when the certificate is ready it will be there so the client can download it, if not it returns "in progress".
+After some time client will receive a message to do a GET to some direction, when the certificate is ready it will be there so the client can download it, if not it returns "pending".
 The proxy will take care of the renovations adding a cronjob that will ask for new issuances.
-Client can get the renewed certificates from the same source just by doing: 
