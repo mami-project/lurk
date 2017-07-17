@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "time"
     "strings"
     "strconv"
     "io/ioutil"
@@ -10,14 +11,13 @@ import (
     "os"
     "io"
     "github.com/satori/go.uuid"
-    "github.com/gorilla/mux"
     "os/exec"
     "encoding/pem"
 )
 
-var openPort = false //Just to make sure ports open only once
-var completionURL_value = "in progress" //message that pops when STAR clientes asks for the uri if it s too early
+var completionURL_value = "pending" //message that pops when STAR clientes asks for the uri if it s too early
 var cronTaskID = 0 //counter for crontab
+var LifeTime = 0
 
 type cdn_post struct {      /*fields in the STAR client CSR*/
         Csr string   `json:"csr"`
@@ -27,6 +27,11 @@ type cdn_post struct {      /*fields in the STAR client CSR*/
 
 type csr_struct struct {     //fields that need treatment in the received csr string
         subjectName string
+}
+type successfull_cert struct { //struct returned when polled at getURI: star/registration/cronTaskID
+    status string
+    lifetime int
+    certificate string
 }
 //Main handler for STAR client requests
 func parseJsonPOST(w http.ResponseWriter, r *http.Request) {
@@ -42,11 +47,15 @@ func parseJsonPOST(w http.ResponseWriter, r *http.Request) {
         if(t.LifeTime > 365 || t.Validity > 200) { //Note that lifetime units are days but validity is in hours
                 fmt.Fprintln(w, "Enter parameters are not valid. Maximum lifetime = 365, maximum validity 200.")
         }else {
+                LifeTime = t.LifeTime
                 cmdS := decodeCsr(t.Csr)
                 csr_fields := parseFieldsOfCsr(cmdS)
-                fmt.Fprintln(w, "Received parameters are valid: LifeTime: ",t.LifeTime," Validity", t.Validity,
+                /*fmt.Fprintln(w, "Received parameters are valid: LifeTime: ",t.LifeTime," Validity", t.Validity,
                 " Domain:", csr_fields.subjectName)
-                fmt.Fprintln(w, "Accepted, poll at /completionURL")
+                */
+                w.WriteHeader(http.StatusCreated)
+                fmt.Fprintln(w, "Location: https://certProxy/star/registration/" + strconv.Itoa(cronTaskID))
+                //time.Sleep(10000 * time.Millisecond) //Uncomment this line to check the pending message
                 //fmt.Printf("%q",csr_fields) //Uncomment this line for some extra-checking
 
                 //Creates a file with cert validity for local certbot to read and deletes the previous one
@@ -60,7 +69,7 @@ func parseJsonPOST(w http.ResponseWriter, r *http.Request) {
                         panic(toFileErr)
                 }
 
-                addToCron(csr_fields.subjectName, t.LifeTime) 
+                addToCron(csr_fields.subjectName, t.LifeTime)
 
                 callCertbot(csr_fields.subjectName) /*Executes certbot for a certain domain*/
 
@@ -76,14 +85,13 @@ func parseJsonPOST(w http.ResponseWriter, r *http.Request) {
                 go post_cert()
                 cronTaskID++ //Counter that serves together with the uuid to make each petition unique
 
-                //Removes tmp files, comment this function if you want more information
-                rmTmpFiles()
+                rmTmpFiles() //Removes tmp files, comment this function if you want more information
 
         }
 
 }
 /*
-    Adds the renewal to cron, it deletes itself when lifetime. To change the renewal hours 
+    Adds the renewal to cron, it deletes itself when lifetime. To change the renewal hours
     go to exeAutoRenew.sh
 */
 func addToCron(domainName string, lifeTime int) {
@@ -95,56 +103,43 @@ func addToCron(domainName string, lifeTime int) {
 
 }
 /*
-Posts the certificates and keeps serving them at :9500/uuid
+Posts the certificates and keeps serving them at :443/uuid
 
 */
 func post_cert () {
     //fmt.Printf("\nGET the certificate from: %v", completionURL_value)
     http.HandleFunc("/" + completionURL_value, func(w http.ResponseWriter, r *http.Request) {
+       w.WriteHeader(http.StatusOK)
+       w.Header().Set("Expires", time.Now().String())
        http.ServeFile(w, r, "/root/starCerts/" + completionURL_value + "/certificate.pem")
-        })
-    if openPort != true {
-        openPort = true
-        err := http.ListenAndServe(":9500", nil)
-       // err := http.ListenAndServe("9500", "server.crt", "server.key", nil) //Uncomment this and comment the previous one
-        if err != nil {                                                       //to make  retrieving the cert https.
-        panic(err)                                                            //It has been tested and it works! 
-        }
-    }
+    })
 
 }
+
 /*
 Invokes post_completionURL when client asks for the certificate
 */
-func answerAGet(w http.ResponseWriter, r *http.Request) {
-        fmt.Println("Responding to a GET request")
-        fmt.Println(r.UserAgent())
-
+func post_completionURL () {
+        http.HandleFunc("/star/registration/" + strconv.Itoa(cronTaskID), func (w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
-        fmt.Fprintln(w, completionURL_value)
-
-}
-/*
-    Lets the STAR client know when the certificate is ready and where it is.
-
-*/
-func post_completionURL() {
-        router := mux.NewRouter().StrictSlash(true)
-        router.HandleFunc("/completionURL", answerAGet).Methods("GET")
-        err := http.ListenAndServe(":9999", router)
-        //err := http.ListenAndServeTLS(":9999","server.crt", "server.key", router) //Uncomment this and comment the previous one
-        if err != nil{                                                              //to make getting the URI https.
-                panic(err)                                                          //It hasn't been tested YET
-
+        if (strings.Compare(completionURL_value, "pending")) == 0 {
+            fmt.Fprintln(w, completionURL_value)
+        } else {
+            a := successfull_cert{status: "valid", lifetime: LifeTime,
+                certificate: completionURL_value}
+            w.Header().Set("Content-Type", "application/json")
+            fmt.Fprintln(w, a)
         }
+
+        })
 
 }
 
 /*
     Creates a copy of the csr in file tmpCsr and returns the csr as plain text
 */
-func decodeCsr (csr string)(cmdS string) { 
-    f, err := os.Create("tmpCsr")   
+func decodeCsr (csr string)(cmdS string) {
+    f, err := os.Create("tmpCsr")
     if err != nil {
         panic(err)
     }
@@ -182,7 +177,7 @@ func parseFieldsOfCsr(cmd string)(csrFields csr_struct) {  /*Returns and array w
 }
 /*
 Stores csr, validity, certificate and URI. Lifetime is not required to store as it is controlled by a cronjob.
-It also creates a file to link the cronTaskID to the uuid 
+It also creates a file to link the cronTaskID to the uuid
 */
 func storeForRenewal (validity int) {
     var certDirName = completionURL_value //All the cert info is kept under a file named as its uri
@@ -272,7 +267,7 @@ func storeForRenewal (validity int) {
 Executes certbot from certbot/certbot/main.py
 Executing certbot using one of its auto executables
 can destroy the changes done in it that are required
-for STAR so execute using this main.py to keep the 
+for STAR so execute using this main.py to keep the
 changes :)
 */
 func callCertbot(domainName string){
@@ -286,12 +281,12 @@ func callCertbot(domainName string){
 }
 
 /*
-Executes last. 
+Executes last.
 starCerts isn't supposed to be deleted unless you
 restart the proxy because it contains all the live
 information.
-If you plan to lauch the proxy but you had 
-obtained a certificate with STAR before, then 
+If you plan to lauch the proxy but you had
+obtained a certificate with STAR before, then
 use: sudo rm -rf starCerts
 */
 func rmTmpFiles () {
@@ -299,15 +294,15 @@ func rmTmpFiles () {
     if err != nil {
         panic (err)
     }
-    err := os.Remove("ObtainedCERT.pem")
+    err = os.Remove("ObtainedCERT.pem")
     if err != nil {
         panic (err)
     }
-    err := os.Remove("STARValidityCertbot")
+    err = os.Remove("STARValidityCertbot")
     if err != nil {
         panic(err)
     }
-    err := os.Remove("tmpCsr")
+    err = os.Remove("tmpCsr")
     if err != nil {
         panic(err)
     }
