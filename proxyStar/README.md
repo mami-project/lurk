@@ -180,7 +180,8 @@ go to the proxy and execute: #rm -rf /etc/letsencrypt
 4. Then: export SERVER=http://172.17.0.4:4000/directory
 4.5 If you just followed the installation there's not need to do 3 & 4, you just did them.
 
-5. Now you are ready to go with proxy's main code: "go run proxySTAR.go"
+5. Now you are ready to go with proxy's main code: "go run proxySTAR.go $lifetime $validity"
+$lifetime and $validity are the parameters you pass as maximum values for STAR certs
 You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 6. Go to client VM and POST at https://certProxy:443/star/registration (Don't forget to add certProxy to your /etc/hosts as the Proxy's IP).
 	For now, the full command looks like this:
