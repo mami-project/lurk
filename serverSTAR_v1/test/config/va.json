@@ -1,0 +1,42 @@
+{
+  "va": {
+    "CAASERVFAILExceptions": "test/caa-servfail-exceptions.txt",
+    "userAgent": "boulder",
+    "debugAddr": ":8004",
+    "portConfig": {
+      "httpPort": 80,
+      "httpsPort": 5001,
+      "tlsPort": 5001
+    },
+    "lookupIPV6": true,
+    "maxConcurrentRPCServerRequests": 100000,
+    "dnsTries": 3,
+    "issuerDomain": "happy-hacker-ca.invalid",
+    "tls": {
+      "caCertfile": "test/grpc-creds/minica.pem",
+      "certFile": "test/grpc-creds/va.boulder/cert.pem",
+      "keyFile": "test/grpc-creds/va.boulder/key.pem"
+    },
+    "grpc": {
+      "address": ":9092",
+      "clientNames": [
+        "ra.boulder"
+      ]
+    }
+  },
+
+  "statsd": {
+    "server": "localhost:8125",
+    "prefix": "Boulder"
+  },
+
+  "syslog": {
+    "stdoutlevel": 6
+  },
+
+  "common": {
+    "dnsResolver": "127.0.0.1:8053",
+    "dnsTimeout": "1s",
+    "dnsAllowLoopbackAddresses": true
+  }
+}

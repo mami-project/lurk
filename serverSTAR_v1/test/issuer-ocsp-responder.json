@@ -1,0 +1,19 @@
+{
+  "ocspResponder": {
+    "source": "file:///tmp/issuer-ocsp-responses.txt",
+    "path": "/",
+    "listenAddress": "0.0.0.0:4003",
+    "shutdownStopTimeout": "10s",
+    "shutdownKillTimeout": "1m",
+    "debugAddr": "localhost:8010"
+  },
+  "common": {
+    "issuerCert": "test/test-ca2.pem"
+  },
+  "sql": {
+    "sqlDebug": true
+  },
+  "syslog": {
+    "stdoutlevel": 6
+  }
+}

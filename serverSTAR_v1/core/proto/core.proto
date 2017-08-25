@@ -1,0 +1,67 @@
+syntax = "proto2";
+
+package core;
+option go_package = "proto";
+
+message Challenge {
+	optional int64 id = 1;
+	optional string type = 2;
+	optional string status = 6;
+	optional string uri = 9;
+	optional string token = 3;
+	optional string keyAuthorization = 5;
+	repeated ValidationRecord validationrecords = 10;
+	optional ProblemDetails error = 7;
+}
+
+message ValidationRecord {
+        optional string hostname = 1;
+        optional string port = 2;
+        repeated bytes addressesResolved = 3; // net.IP.MarshalText()
+        optional bytes addressUsed = 4; // net.IP.MarshalText()
+
+        repeated string authorities = 5;
+        optional string url = 6;
+        // A list of addresses tried before the address used (see
+        // core/objects.go and the comment on the ValidationRecord structure
+        // definition for more information.
+        repeated bytes addressesTried = 7; // net.IP.MarshalText()
+}
+
+message ProblemDetails {
+	optional string problemType = 1;
+	optional string detail = 2;
+	optional int32 httpStatus = 3;
+}
+
+message Certificate {
+  optional int64 registrationID = 1;
+  optional string serial = 2;
+  optional string digest = 3;
+  optional bytes der = 4;
+  optional int64 issued = 5;  // Unix timestamp (nanoseconds)
+  optional int64 expires = 6; // Unix timestamp (nanoseconds)
+}
+
+message Registration {
+        optional int64 id = 1;
+        optional bytes key = 2;
+        repeated string contact = 3;
+        optional bool contactsPresent = 4;
+        optional string agreement = 5;
+        optional bytes initialIP = 6;
+        optional int64 createdAt = 7; // Unix timestamp (nanoseconds)
+        optional string status = 8;
+}
+
+message Authorization {
+        optional string id = 1;
+        optional string identifier = 2;
+        optional int64 registrationID = 3;
+        optional string status = 4;
+        optional int64 expires = 5; // Unix timestamp (nanoseconds)
+        repeated core.Challenge challenges = 6;
+        optional bytes combinations = 7;
+}
+
+message Empty {}

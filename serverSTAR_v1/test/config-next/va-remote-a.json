@@ -1,0 +1,39 @@
+{
+  "va": {
+    "CAASERVFAILExceptions": "test/caa-servfail-exceptions.txt",
+    "userAgent": "boulder",
+    "debugAddr": ":8011",
+    "portConfig": {
+      "httpPort": 5002,
+      "httpsPort": 5001,
+      "tlsPort": 5001
+    },
+    "dnsTries": 3,
+    "issuerDomain": "happy-hacker-ca.invalid",
+    "tls": {
+      "caCertfile": "test/grpc-creds/minica.pem",
+      "certFile": "test/grpc-creds/va.boulder/cert.pem",
+      "keyFile": "test/grpc-creds/va.boulder/key.pem"
+    },
+    "grpc": {
+      "address": ":9097",
+      "clientNames": [
+        "va.boulder"
+      ]
+    },
+    "features": {
+      "IPv6First": true
+    }
+  },
+
+  "syslog": {
+    "stdoutlevel": 6,
+    "sysloglevel": 4
+  },
+
+  "common": {
+    "dnsResolver": "127.0.0.1:8053",
+    "dnsTimeout": "1s",
+    "dnsAllowLoopbackAddresses": true
+  }
+}
