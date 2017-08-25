@@ -1,0 +1,22 @@
+"""Class-based event handlers
+"""
+import zope.event
+
+registry = {}
+
+def handler(event_class, handler=None):
+    if handler is None:
+        return lambda func: handler(event_class, func)
+
+    if not registry:
+        zope.event.subscribers.append(dispatch)
+
+    if event_class not in registry:
+        registry[event_class] = [handler]
+    else:
+        registry[event_class].append(handler)
+
+def dispatch(event):
+    for event_class in event.__class__.__mro__:
+        for handler in registry.get(event_class, ()):
+            handler(event)

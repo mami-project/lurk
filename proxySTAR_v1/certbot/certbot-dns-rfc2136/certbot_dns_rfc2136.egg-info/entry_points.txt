@@ -1,0 +1,3 @@
+[certbot.plugins]
+dns-rfc2136 = certbot_dns_rfc2136.dns_rfc2136:Authenticator
+

@@ -1,0 +1,3 @@
+[certbot.plugins]
+dns-dnsimple = certbot_dns_dnsimple.dns_dnsimple:Authenticator
+

@@ -1,0 +1,10 @@
+acme==0.18.0.dev0
+certbot==0.18.0.dev0
+dns-lexicon
+mock
+setuptools>=1.0
+zope.interface
+
+[docs]
+Sphinx>=1.0
+sphinx_rtd_theme

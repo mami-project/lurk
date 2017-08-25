@@ -1,0 +1,12 @@
+#!/root/certbot/venv/bin/python2
+# EASY-INSTALL-ENTRY-SCRIPT: 'letshelp-certbot','console_scripts','letshelp-certbot-apache'
+__requires__ = 'letshelp-certbot'
+import re
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(
+        load_entry_point('letshelp-certbot', 'console_scripts', 'letshelp-certbot-apache')()
+    )

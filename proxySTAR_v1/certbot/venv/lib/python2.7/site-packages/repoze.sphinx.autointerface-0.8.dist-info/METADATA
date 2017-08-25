@@ -1,0 +1,189 @@
+Metadata-Version: 2.0
+Name: repoze.sphinx.autointerface
+Version: 0.8
+Summary: Sphinx extension: auto-generates API docs from Zope interfaces
+Home-page: http://www.repoze.org
+Author: Agendaless Consulting
+Author-email: repoze-dev@lists.repoze.org
+License: BSD-derived (http://www.repoze.org/LICENSE.txt)
+Keywords: web wsgi zope
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Dist: Sphinx (>=0.6.1)
+Requires-Dist: setuptools
+Requires-Dist: zope.interface
+
+repoze.sphinx.autointerface README
+==================================
+
+Overview
+--------
+
+Thie package defines an extension for the
+`Sphinx <http://sphinx.pocool.org>`_ documentation system.  The extension
+allows generation of API documentation by introspection of
+`zope.interface <http://pypi.python.org/pypi/zope.interface>`_ instances in 
+code.
+
+
+Installation
+------------
+
+Install via `easy_install
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
+
+ $ bin/easy_install repoze.sphinx.autointerface
+
+or any other means which gets the package on your ``PYTHONPATH``.
+
+
+Registering the Extension
+-------------------------
+
+Add ``repoze.sphinx.autointerface`` to the ``extensions`` list in the
+``conf.py`` of the Sphinx documentation for your product.  E.g.::
+
+ extensions = ['sphinx.ext.autodoc',
+               'sphinx.ext.doctest',
+               'repoze.sphinx.autointerface',
+              ]
+
+
+Using the Extension
+-------------------
+
+At appropriate points in your document, call out the interface
+autodocs via::
+
+  .. autointerface:: yourpackage.interfaces.IFoo
+
+Output from the directive includes
+
+- the fully-qualified interface name
+- any base interfaces
+- the doctstring from the interface, rendered as reSTX.
+- the members of the interface (methods and attributes).
+
+  * For each attribute, the output includes the attribute name
+    and its description.
+  * For each method, the output includes the method name, its signature,
+    and its docstring (also rendered as reSTX).
+
+
+repoze.sphinx.autointerface Changelog
+=====================================
+
+0.8 (2016-03-28)
+----------------
+
+- Add support for Python 3.3, 3.4, and 3.5.
+
+- Drop support for Python 2.6 and 3.2.
+
+- Allow cross references using the ``:class:`` directive to use the
+  ``.`` for "fuzzy" searching.  Thanks to Jason Madden for the patch.
+
+0.7.1 (2012-09-15)
+------------------
+
+- Remove ``setup.py`` dependency on ``ez_setup.py``.
+
+0.7.0 (2012-06-20)
+------------------
+
+- PyPy compatibility.
+
+- Python 3.2+ compatibility.  Thanks to Arfrever for the patch.
+
+- Include interface docs under the ``automodule`` directive.  Thanks to
+  Krys Lawrence for the patch.
+
+
+0.6.2 (2011-02-13)
+------------------
+
+- Fix ``TypeError: 'NoneType' object is not iterable`` error when generating
+  a rendering of an interface under Python 2.7.
+
+
+0.6.1 (2011-01-28)
+------------------
+
+- Fix ':member-order: bysource' handling.
+
+
+0.6 (2011-01-28)
+----------------
+
+- Correctly handle ':members:' values explicitly set in the directive.
+
+
+0.5 (2011-01-18)
+----------------
+
+- Added support for the ':member-order:' flag, which can take one of the
+  three stock values, "alphabetical", "groupwise", or "bysource".  By
+  default, members are documented in "hash" order.
+
+
+0.4 (2010-07-26)
+----------------
+
+- Fixed compatibility with Sphinx 1.0
+
+- Un-break PyPI ReST/HTML-rendering again.
+
+
+0.3 (2009-10-25)
+----------------
+
+- Refactor sphinx integration. There are now separate ``autointerface``
+  and ``interface`` directives.
+
+
+0.2.1 (2009-08-20)
+------------------
+
+- Fix add_directive arguments to work with Sphinx 0.6.1, now required.
+
+
+0.1.3 (2009-01-14)
+------------------
+
+- Coerce unicode path elements to str in ``_resolve_dotted_name``.
+  Note that non-ASCII path elements won't work:  this fix just deals
+  with the case where the path was of type unicode.
+
+- Fixed spelling of directive in README.txt.
+
+- Added dependency on ``zope.interface``.
+
+
+0.1.2 (2008-10-03)
+------------------
+
+- Packaging change:  improved description in README.txt.
+
+
+0.1.1 (2008-10-03)
+------------------
+
+- Packaging bug:  the ``long_description`` was not rendering properly to
+  HTML on PyPI.
+
+
+0.1 (2008-10-02)
+----------------
+
+- Initial release.
+
+
