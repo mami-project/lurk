@@ -2,10 +2,10 @@ package main
 
 import (
         "bytes"
-	"crypto/x509"
-	"crypto/tls"
+        "crypto/x509"
+        "crypto/tls"
         "fmt"
-	"io/ioutil"
+        "io/ioutil"
         "os"
         "net/http"
         "net/url"
@@ -13,7 +13,8 @@ import (
 )
 func main() {
         if len(os.Args) != 2 {
-                panic("Illegal number of arguments: Introduce just the certificate's $uuid")
+                fmt.Printf("Illegal number of arguments: Introduce just 2: command $uuid\n$uuid is the certificate's uri for renewal. You can check it at starCerts/\n")
+                os.Exit(1)
         }
 
         //Reads cert from file
@@ -24,7 +25,7 @@ func main() {
         //Parses the cert
         CA_certPool := x509.NewCertPool()
         booleanValue := CA_certPool.AppendCertsFromPEM(CACert)
-	fmt.Printf("%v", booleanValue)
+        fmt.Printf("%v", booleanValue)
 
 
 
@@ -47,4 +48,3 @@ func main() {
 
 
 }
-
