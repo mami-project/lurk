@@ -8,12 +8,14 @@ import (
   "io/ioutil"
   "net/http"
   "strings"
+  "strconv"
 )
 
+var renewStep int
 
 func checkStatus() {
-    time.Sleep(10000 * time.Millisecond) //currently 10 seconds. 1s = 1000
-  //  fmt.Println("Crontab updated")  //Uncomment to see a Message everytime it checks
+    time.Sleep(time.Duration(renewStep) * time.Millisecond) // 1s = 1000
+    //fmt.Println("Crontab updated")  //Uncomment to see a Message everytime it checks
 
      _, err := os.Stat("./renewTmp/renew1")
         if err == nil {
@@ -46,33 +48,38 @@ func addToCron (domainStr, lifeTimeStr, crtUuid string) {
 }
 
 func processCancelations (w http.ResponseWriter, r *http.Request) {
-  
-	// Buffer the body
-	bodyBuffer, _ := ioutil.ReadAll(r.Body)
-	
-	//Get uri
-	uri := strings.SplitN(string(bodyBuffer), "=", 2)	
-	//fmt.Printf("DNO wants to cancel UUID: %v", uri[1])
-	
-	//Delete cronjob
-	exeTermination := []string{"exeTermination.sh", uri[1]} 
-	_,err := exec.Command("/bin/sh",exeTermination...).Output()
-	if err != nil {
+
+        // Buffer the body
+        bodyBuffer, _ := ioutil.ReadAll(r.Body)
+
+        //Get uri
+        uri := strings.SplitN(string(bodyBuffer), "=", 2)
+        //fmt.Printf("DNO wants to cancel UUID: %v", uri[1])
+
+        //Delete cronjob
+        exeTermination := []string{"exeTermination.sh", uri[1]}
+        _,err := exec.Command("/bin/sh",exeTermination...).Output()
+        if err != nil {
                 panic(err)
         }
-	w.WriteHeader(http.StatusAccepted)
-	fmt.Fprint(w, "Deleted")
-  
+        w.WriteHeader(http.StatusAccepted)
+        fmt.Fprint(w, "Deleted")
+
 }
 
 func main() {
+     if len(os.Args) != 2 {
+        fmt.Printf("USAGE: command time.Milliseconds\nThis value sets the time between checks\n")
+        os.Exit(1)
+     }
+     renewStep,_ = strconv.Atoi(os.Args[1]) //renew every "renewStep" seconds
+     fmt.Printf("renewStep is: %v", renewStep)
      go checkStatus()
      fmt.Println("RenewalManager status is: ACTIVE")
      http.HandleFunc("/terminate", processCancelations)
      err := http.ListenAndServeTLS(":9200", "cert.pem", "key.pem", nil)
      if err != nil {
-	panic (err)
+        panic (err)
      }
-    
-}
 
+}
