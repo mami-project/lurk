@@ -25,9 +25,9 @@ These are the steps to get the whole simulation going:
 
 Prepare the Server: //this is the first VM
 
-- In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently in https://github.com/diegoDAguilar/boulderStar. NOTE: When you finish copying you should't have a boulderStar file,
-everything must be inside letsencrypt/boulder/, if you do an "$ls" in letsencrypt/boulder/, it must return the files that are currently under boulderStar/boulder).
-Using "git clone https://github.com/diegoDAguilar/boulderStar" is the fastest way to download all the files.
+- In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently in https://github.com/mami-project/lurk/tree/master/serverSTAR_v1. NOTE: When you finish copying,
+everything must be inside letsencrypt/boulder/, if you do an "$ls" in letsencrypt/boulder/, it must return the files that are currently under serverSTAR_v1).
+Using "git clone https://github.com/mami-project/lurk/tree/master/serverSTAR_v1" is the fastest way to download all the files.
 
 - Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official documentation available at: https://golang.org/doc/install
 
@@ -61,7 +61,7 @@ Remember to not cypher the key file. If you accidentally did, use:
 
 Prepare the Proxy: //this is the second VM
 
--The current proxy has been tested as root so use: "sudo -i" and place a new directory there with all the files in https://github.com/diegoDAguilar/proxyStar so that the end directory of files such as proxySTAR.go and termination.go is "/root/"
+-The current proxy has been tested as root so use: "sudo -i" and place a new directory there with all the files in https://github.com/mami-project/lurk/tree/master/proxySTAR_v1 so that the end directory of files such as proxySTAR.go and termination.go is "/root/"
 Again, using git clone is the fastest way.
 
 - In the new directory go to certbot/ and type: "source ./venv/bin/activate" (You always need this ON so remember to execute this
@@ -130,7 +130,7 @@ to delegate. This file shall contain a list of all the domains you may delegate.
 E.g. cat myDomains.txt should return:
 
 bye.com
-heelo.comp
+heelo.com
 imRunningOutOfIdeasForNewDomains.com
 
 -Last step. Create a file in /root/ called "serverKey" and a text file inside named: "cert.pem":
@@ -167,7 +167,8 @@ HOW TO RUN A FULL SIMULATION
 go to the proxy and execute: #rm -rf /etc/letsencrypt
 1. In the server go to ~/gopath/src/github.com/letsencrypt/boulder
 2. Run the renewalManager in background:
- 	$go run renewalManager.go &
+ 	$go run renewalManager.go $time.Milliseconds &
+	//to update the crontab every 5s run: "go run renewalManager 5000 &"
 	//Uncomment the line that says "Message" in function checkStatus() if you want to get notified when the renewal does a check.
 	...and these 2 commands to run Boulder:
 
@@ -180,7 +181,8 @@ go to the proxy and execute: #rm -rf /etc/letsencrypt
 4. Then: export SERVER=http://172.17.0.4:4000/directory
 4.5 If you just followed the installation there's not need to do 3 & 4, you just did them.
 
-5. Now you are ready to go with proxy's main code: "go run proxySTAR.go"
+5. Now you are ready to go with proxy's main code: "go run proxySTAR.go $maxLifeTime $maxValidity $pathToCert"
+//The first two variables set the maximum lifetime and validity, the last one is the path to the cert needed to use tls with the server.
 You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 6. Go to client VM and POST at https://certProxy:443/star/registration (Don't forget to add certProxy to your /etc/hosts as the Proxy's IP).
 	For now, the full command looks like this:
@@ -194,21 +196,21 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 		*fullCSR2 is a textfile that contains a basic CSR with the domain name bye.com as SN field
 		(subject name) plus lifetime and validity in format:
 
-		{"csr":"-----BEGIN CERTIFICATE REQUEST-----\n
-		MIICmDCCAYACAQAwUzELMAkGA1UEBhMCTU0xCjAIBgNVBAgMAWsxDDAKBgNVBAcM\n
-		A2xsbDEKMAgGA1UECgwBdDEMMAoGA1UECwwDdGlkMRAwDgYDVQQDDAdieWUuY29t\n
-		MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmm74/AotkDGzsdVsn+Vu\n
-		Z4FHW2+lf3HrLcDlpWHvBl3WSLg2TJHXdl8F6GtI3w91Cws/8wT4g+W33GYB0WAF\n
-		WIGvzTPajeZ3jQt4t98bpzbuaFZz8QCoQVuEOuk8CCQ5/Cezbml3loMtXTuR+R1c\n
-		OuVB9sFXbpoGvGL2fbAmrTtmOY9ZoXaLQmN7sj+4TjKRtZvVdpiLRaYp608ct2h3\n
-		E6R2Nzm0OHdI35y61jaw46WiXCM30W/V2/Ia0c35Jdy4vbPybH1+k4ajmrlwiFrO\n
-		986AlAxvxDZIKtahQFqMdH3hEuzTR6OnDwMlDtkLXThE9XSmcAhdYd9RLC8hF33A\n
-		SQIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAF7ja2QCYDPfJ3kY0f4eSYaAaQba\n
-		bQ6TA2dS5AFz+WSdzBQTTa8uTzgrKOwe8mQoHhjsNHW6aRpYCxje2v0pzTMw27g2\n
-		YmXdfEfmWsF4GHk2NZ3ECE7LwA0YlsGZXpmYkUT89+69cJiiqiWUpwaGQdbx2Ozs\n
-		N7tlHLlLDufQubnMetOfNb7SbyMpCdNssAaj7gkkmeOHk9rjlkrpkBJf8lBb2xIo\n
-		XFH3iswaojVO3pAKZytDPrx9tsAsLstx6Jv6+O5lfr9rS4+EAT19yeZgd/64qTjl\n
-		yx1r4nkEp7Z/brWh4X3q8zUhBQCLSeHIXp9nWj69WGXFtTOqcyx+uruc/Qw=\n
+		{"csr":"-----BEGIN CERTIFICATE REQUEST-----
+		MIICmDCCAYACAQAwUzELMAkGA1UEBhMCTU0xCjAIBgNVBAgMAWsxDDAKBgNVBAcM
+		A2xsbDEKMAgGA1UECgwBdDEMMAoGA1UECwwDdGlkMRAwDgYDVQQDDAdieWUuY29t
+		MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmm74/AotkDGzsdVsn+Vu
+		Z4FHW2+lf3HrLcDlpWHvBl3WSLg2TJHXdl8F6GtI3w91Cws/8wT4g+W33GYB0WAF
+		WIGvzTPajeZ3jQt4t98bpzbuaFZz8QCoQVuEOuk8CCQ5/Cezbml3loMtXTuR+R1c
+		OuVB9sFXbpoGvGL2fbAmrTtmOY9ZoXaLQmN7sj+4TjKRtZvVdpiLRaYp608ct2h3
+		E6R2Nzm0OHdI35y61jaw46WiXCM30W/V2/Ia0c35Jdy4vbPybH1+k4ajmrlwiFrO
+		986AlAxvxDZIKtahQFqMdH3hEuzTR6OnDwMlDtkLXThE9XSmcAhdYd9RLC8hF33A
+		SQIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAF7ja2QCYDPfJ3kY0f4eSYaAaQba
+		bQ6TA2dS5AFz+WSdzBQTTa8uTzgrKOwe8mQoHhjsNHW6aRpYCxje2v0pzTMw27g2
+		YmXdfEfmWsF4GHk2NZ3ECE7LwA0YlsGZXpmYkUT89+69cJiiqiWUpwaGQdbx2Ozs
+		N7tlHLlLDufQubnMetOfNb7SbyMpCdNssAaj7gkkmeOHk9rjlkrpkBJf8lBb2xIo
+		XFH3iswaojVO3pAKZytDPrx9tsAsLstx6Jv6+O5lfr9rS4+EAT19yeZgd/64qTjl
+		yx1r4nkEp7Z/brWh4X3q8zUhBQCLSeHIXp9nWj69WGXFtTOqcyx+uruc/Qw=
 		-----END CERTIFICATE REQUEST-----","lifetime":365,"validity":21}
 
 		To generate this text file first generate a private key and a CSR:
@@ -217,13 +219,12 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 		See its contents:
 		"cat CSR.csr"
 
-		And copy it into a new file following the format above. Dont forget to add lifetime and validity at the end and "\n"
-		after each row. I ll remove this asap to make it less tedious.
+		And copy it into a new file following the format above. Dont forget to add lifetime and validity at the end.
 
 7. After the client executes the command in step 6 it will get a message similar to this one:
 "Location: https://certProxy/star/registration/0"
  Now if the client goes to this URI: "$curl --cacert /usr/share/ca-certificates/mozilla/server.crt https://certProxy:443/star/registration/0"
- It will get a message back. This response can be {pending} or {status, lifetime,the uuid4 that serves as URI}
+ It will get you a message back. This response can be {pending} or {status, lifetime,the uuid4 that serves as URI}
  E.g. {valid 365 20b1bac1-db72-42f4-9620-add03c789e36}
 8. Then the client can retrieve the chained cert by using:
 	"curl --cacert ./serverKey/cert.pem https://CertificateAuthoritySTAR:9898/20b1bac1-db72-42f4-9620-add03c789e36"
@@ -239,7 +240,7 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 "bg"
 And check the crontab: "sudo crontab -l",
 
-10. Renewals will be at the same URI that the first certificate, so DNO is not needed and can be turned OFF if you want so.
+10. Renewals will be at the same URI that the first certificate, so DNO is not needed adnymore and can be turned OFF if you want so.
 
 11.Note that a new directory has been created in the Server VM, this directory contains NEEDED information for the renewal so deleting it will cause renewals to fail.
 
