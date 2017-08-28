@@ -21,6 +21,7 @@ var cronTaskID = 0 //counter for crontab
 var LifeTime = 0
 var maxLifeTime = 0
 var maxValidity = 0
+var fileWithDomainList string
 
 type cdn_post struct {      /*fields in the STAR client CSR*/
         Csr string   `json:"csr"`
@@ -93,7 +94,7 @@ Returns true if the domain in the CN field is in ./starCerts/myDomains.txt
 */
 func parseDomain(domainNameInCSR string) bool {
 
-    f, err := os.Open("/root/starCerts/myDomains.txt")
+    f, err := os.Open(fileWithDomainList)
     if err != nil {
       panic (err)
     }
@@ -305,19 +306,18 @@ func remakeCsrInBase64(rawC string, f *os.File )  {
 rawLen := len(rawC)
 i := 0
 var body string
-	//fmt.Print("EEEEY",rawC)
-	needNewLine := strings.Index(rawC, "-----END")
-	rawC = rawC[i:i+needNewLine] + "\n" + rawC[needNewLine:rawLen]
+        needNewLine := strings.Index(rawC, "-----END")
+        rawC = rawC[i:i+needNewLine] + "\n" + rawC[needNewLine:rawLen]
         for i < rawLen {
-		if (rawC[i:i+5] == "-----") {
-			body = rawC[i:i+35]
-			f.WriteString(body)
-			i += 35
-		}
+                if (rawC[i:i+5] == "-----") {
+                        body = rawC[i:i+35]
+                        f.WriteString(body)
+                        i += 35
+                }
 
                 if (rawLen - 64) > i {
-			 body = rawC[i:i+64]
-			f.WriteString("\n")
+                         body = rawC[i:i+64]
+                        f.WriteString("\n")
                 } else {
                         body = rawC[i:rawLen + 1]
                 }
@@ -329,7 +329,7 @@ var body string
 }
 /*
     Decodes the csr so that fields can be read.
-    For now it is supposed that the required domain is correct.
+
 */
 func parseFieldsOfCsr(cmd string)(csrFields csr_struct) {  /*Returns and array with each important field of the csr in tmpCsr*/
         fmt.Printf("String: %s FIN string", cmd)
@@ -405,9 +405,14 @@ func rmTmpFiles () {
 
 
 func main() {
+    if len(os.Args) != 4 {
+        fmt.Printf("USAGE: command maxLifeTime maxValidity pathToDomainsList\n")
+        os.Exit(1)
+     }
     maxLifeTime,_ = strconv.Atoi(os.Args[1])
     maxValidity,_ = strconv.Atoi(os.Args[2])
-    
+    fileWithDomainList = os.Args[3]
+
     fmt.Println("Proxy STAR status in middlebox is: ACTIVE")
     http.HandleFunc("/star/registration", parseJsonPOST)
     err := http.ListenAndServeTLS(":443", "server.crt", "server.key", nil)
@@ -416,4 +421,3 @@ func main() {
     }
 
 }
-
