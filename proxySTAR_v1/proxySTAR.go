@@ -260,7 +260,7 @@ func post_completionURL (id, lifetime int, uri string) {
         _, err := os.Stat("./starCerts/" + uri + "/" + "certificate.pem")
         if err == nil {
          a := successfull_cert{status: "valid", lifetime: lifetime,
-             certificate: uri}
+             certificate: "https://CertificateAuthoritySTAR:9898/" +uri}
         lifetimeDuration, err := time.ParseDuration(strconv.Itoa(lifetime) + "h")
         if err != nil {
           panic (err)
