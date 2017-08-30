@@ -29,9 +29,9 @@ Prepare the Server: //this is the first VM
 
 - In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently in https://github.com/mami-project/lurk/tree/master/serverSTAR_v1. NOTE: When you finish copying,
 everything must be inside letsencrypt/boulder/, if you do an "$ls" in letsencrypt/boulder/, it must return the files that are currently under serverSTAR_v1).
-Using "git clone https://github.com/mami-project/lurk/tree/master/serverSTAR_v1" is the fastest way to download all the files.
+Using "git clone https://github.com/mami-project/lurk" is the fastest way to download all the files, but you will have to remove all the other lurk files but serverSTAR_v1.
 
-- Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official documentation available at: https://golang.org/doc/install
+- Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official documentation available at: https://golang.org/doc/install. You will have to add it to your $PATH, everything is explained in the documentation link. Also, because STAR uses other gits dont forget to place them in /usr/local/go/src/github. These gits are in gopath file.
 
 - Fully install Docker and Docker-Compose: https://docs.docker.com/compose/install/ just follow the steps and test that the hello-world image works. I'm using version 17.03.1-ce for Docker and version 1.12.0 for Docker-Compose.
 
