@@ -2,6 +2,8 @@ Contents of this file:
 
 - Installation Guide --> How to set up the environment
 
+- Common problems --> Recommended to read
+
 - Simulation Guide --> Obtain a STAR certificate yourself
 
 - Round-Trips Guide --> In depth explanation of every step in STAR
@@ -157,7 +159,28 @@ If it works, stop Boulder:
 
 If ping fails try $traceroute 172.17.0.4 to see where the message gets lost. Now go to the VM where the last jump was made
 and check the route tables: $route
-You must then add the routing for the 172.17.0.0 network and gateway 255.255.0.0. After it works, stop Boulder as explained before.
+You must then add the routing for the 172.17.0.0 network and gateway 255.255.0.0. In my VM the command looks like:
+
+sudo route add -net 172.17.0.0 gw acme-server2 netmask 255.255.0.0 dev eth0
+
+-> 172.17.0.0 refers to the docker network, acme-server2 is the name of the VM where the dockers are running.
+
+*****************COMMON PROBLEMS*****************
+1.Proxy "fails" when you lauch the client. First stop the proxy. Now type: "sudo rm -rf "/etc/letsencrypt". Try again. If it keeps 
+failing it probably is a problem with the routing. To make sure lets check the logfiles: "cat /var/log/letsencrpy/letsencrypt.log", in the last paragraph it must say something similar to "No route to host". Fix it adding the routes (like explained in the previos section). Remember that the proxy needs to be able to ping/traceroute to 172.17.0.4 (boulder docker in the server VM). On the opposite side, the client needs to be able to connect to the proxy and to the server's IP, not to the docker! (to retrieve the certificate).
+
+2.Certificate is not issued. Check that your proxy is able to solve the challenge. Place an html file in /var/www/bye.com/html/.well-known/acme-challenge and try to access it as explained before.
+
+3.I did the installation, and tried common problems 1 and 2 but nothing works! Check that your iptable's forwar policy is set to accept,
+and that you have PK certificates generated with openssl for proxy and server. Also, the client needs to have proxy's and server's
+certificate. 
+In the example, client keeps server's cert in "serverKey/cert.pem" and proxy's cert is in "/usr/share/ca-certificates/mozilla/server.crt". 
+Server keeps his certificate and private key (decoded!) as cert.pem and key.pem in boulder/
+Proxy keeps his certificate and private key (decoded!) as server.crt and server.key in /root
+Proxy keeps server's certificate in serverKey/cert.pem
+
+
+
 
 *****************SIMULATION GUIDE*****************
 
