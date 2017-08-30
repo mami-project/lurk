@@ -166,6 +166,7 @@ sudo route add -net 172.17.0.0 gw acme-server2 netmask 255.255.0.0 dev eth0
 -> 172.17.0.0 refers to the docker network, acme-server2 is the name of the VM where the dockers are running.
 
 *****************COMMON PROBLEMS*****************
+
 1.Proxy "fails" when you lauch the client. First stop the proxy. Now type: "sudo rm -rf "/etc/letsencrypt". Try again. If it keeps 
 failing it probably is a problem with the routing. To make sure lets check the logfiles: "cat /var/log/letsencrpy/letsencrypt.log", in the last paragraph it must say something similar to "No route to host". Fix it adding the routes (like explained in the previos section). Remember that the proxy needs to be able to ping/traceroute to 172.17.0.4 (boulder docker in the server VM). On the opposite side, the client needs to be able to connect to the proxy and to the server's IP, not to the docker! (to retrieve the certificate).
 
