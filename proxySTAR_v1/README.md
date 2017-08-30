@@ -117,7 +117,7 @@ $curl http://YOUR_SERVER'S_IP/.well-known/acme-challenge/hello.html
 
 Take the previous "bye.html" as an e.g. but rename it to hello.html
 
-If it works feel free to delete it. If it doesn't, change the file permissions going to /var/www and typing "sudo chmod -R 644 bye.com" and change the user so it isn't root:
+If it works feel free to delete it. If it doesn't, change the file permissions going to /var/www and typing "sudo chmod -R 755 bye.com" and change the user so it isn't root:
 "sudo chown -R user:user bye.com" <----IMPORTANT: "user:user" is your name and group, so if your user in the VM is Josh from the Goonies--> sudo chown -R Josh:Goonies bye.com
 
 -For the simulation to work, you also need to generate a certificate using openSSL so that proxy and client can use https:
