@@ -66,8 +66,11 @@ Prepare the Proxy: //this is the second VM
 -The current proxy has been tested as root so use: "sudo -i" and place a new directory there with all the files in https://github.com/mami-project/lurk/tree/master/proxySTAR_v1 so that the end directory of files such as proxySTAR.go and termination.go is "/root/"
 Again, using git clone is the fastest way.
 
-- In the new directory go to certbot/ and type: "source ./venv/bin/activate" (You always need this ON so remember to execute this
-command again if you exit the VM). If it doesn't work, type ""./tools/venv.sh" first.
+- In the new directory go to certbot/ and type: 
+"./certbot-auto --os-packages-only"
+"./tools/venv.sh"
+"source ./venv/bin/activate" (You always need this ON so remember to execute this last
+command again if you exit the VM).
 
 - Declare global environment:  export SERVER=http://172.17.0.4:4000/directory    (this is where Boulder is listening)
 
