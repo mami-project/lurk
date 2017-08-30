@@ -172,9 +172,9 @@ failing it probably is a problem with the routing. To make sure lets check the l
 
 2.Certificate is not issued. Check that your proxy is able to solve the challenge. Place an html file in /var/www/bye.com/html/.well-known/acme-challenge and try to access it as explained before.
 
-3.I did the installation, and tried common problems 1 and 2 but nothing works! Check that your iptable's forwar policy is set to accept,
-and that you have PK certificates generated with openssl for proxy and server. Also, the client needs to have proxy's and server's
-certificate. 
+3.I did the installation, and tried common problems 1 and 2 but nothing works! 
+Check that your iptable's forward policy is set to accept, and that you have PK certificates generated with openssl for proxy and server. 
+Also, the client needs to have proxy's and server's certificate. 
 In the example, client keeps server's cert in "serverKey/cert.pem" and proxy's cert is in "/usr/share/ca-certificates/mozilla/server.crt". 
 Server keeps his certificate and private key (decoded!) as cert.pem and key.pem in boulder/
 Proxy keeps his certificate and private key (decoded!) as server.crt and server.key in /root
