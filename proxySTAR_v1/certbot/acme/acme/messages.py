@@ -419,23 +419,22 @@ class AuthorizationResource(ResourceWithURI):
 @Directory.register
 class CertificateRequest(jose.JSONObjectWithFields):
     """ACME new-cert request.
-
     :ivar acme.jose.util.ComparableX509 csr:
         `OpenSSL.crypto.X509Req` wrapped in `.ComparableX509`
-
     """
     resource_type = 'new-cert'
     resource = fields.Resource(resource_type)
     csr = jose.Field('csr', decoder=jose.decode_csr, encoder=jose.encode_csr)
     #Adds recurrent field if STAR
     if os.path.isfile("../../STARValidityCertbot"):
-    	if os.path.isfile("../../STARLifeTimeCertbot"):
-		if os.path.isfile("../../STARUuidCertbot"):
-			recurrent = jose.Field('recurrent')
-	    		recurrent_cert_validity = jose.Field('recurrent_cert_validity')
-			recurrent_cert_lifetime = jose.Field('recurrent_cert_lifetime')
-			recurrent_cert_uuid = jose.Field('recurrent_cert_uuid')
-
+        if os.path.isfile("../../STARLifeTimeCertbot"):
+                if os.path.isfile("../../STARUuidCertbot"):
+                        recurrent = jose.Field('recurrent')
+                        recurrent_cert_validity = jose.Field('recurrent-certificate-validity')
+                        recurrent_start_date = jose.Field('recurrent-start-date')
+                        recurrent_end_date = jose.Field('recurrent-end-date')
+                        #recurrent_cert_lifetime = jose.Field('recurrent_cert_lifetime')
+                        recurrent_cert_uuid = jose.Field('recurrent_cert_uuid')
 
 class CertificateResource(ResourceWithURI):
     """Certificate Resource.
