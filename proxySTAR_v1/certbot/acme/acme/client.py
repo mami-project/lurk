@@ -288,6 +288,11 @@ class Client(object):  # pylint: disable=too-many-instance-attributes
             response, authzr.body.identifier, authzr.uri)
         return updated_authzr, response
 
+    def timeAccordingToRFC(self,lengthInDays=0):
+        """Returns date in RFC3339 format"""
+        d = datetime.datetime.utcnow() + datetime.timedelta(days=lengthInDays)
+        return d.isoformat('T') + 'Z'
+
     def request_issuance(self, csr, authzrs):
         """Request issuance.
 
@@ -302,27 +307,52 @@ class Client(object):  # pylint: disable=too-many-instance-attributes
         """
         assert authzrs, "Authorizations list is empty"
         logger.debug("Requesting issuance...")
-	
-	#Checks if STARValidityCertbot file containing recurrent_cert_validity exists
-	recurrent = False
-	if os.path.isfile("../../STARValidityCertbot"):
-		fileValSTAR = open("../../STARValidityCertbot", "r")
-		if os.path.isfile("../../STARLifeTimeCertbot"):
-	                fileLifeSTAR = open("../../STARLifeTimeCertbot", "r")
-			if os.path.isfile("../../STARUuidCertbot"):
-				fileUuidSTAR = open("../../STARUuidCertbot", "r")
-				recurrent_cert_validity = int(float(fileValSTAR.read()))  
-				recurrent_cert_lifetime = int(float(fileLifeSTAR.read()))	
-				recurrent_cert_uuid = fileUuidSTAR.read()
-				recurrent = True
-		        	req = messages.CertificateRequest(csr=csr,recurrent=recurrent,recurrent_cert_validity=recurrent_cert_validity, recurrent_cert_lifetime=recurrent_cert_lifetime, recurrent_cert_uuid=recurrent_cert_uuid)
-				#os.remove()
-				
-	if not recurrent:
-		req = messages.CertificateRequest(csr=csr)
-	print "CSR sent to server is %s" % req 
+        """
+        #Checks if STARValidityCertbot file containing recurrent_cert_validity exists
+        recurrent = False
+        if os.path.isfile("../../STARValidityCertbot"):
+                fileValSTAR = open("../../STARValidityCertbot", "r")
+                if os.path.isfile("../../STARLifeTimeCertbot"):
+                        fileLifeSTAR = open("../../STARLifeTimeCertbot", "r")
+                        if os.path.isfile("../../STARUuidCertbot"):
+                                fileUuidSTAR = open("../../STARUuidCertbot", "r")
+                                recurrent_cert_validity = (int(float(fileValSTAR.read())) * 60) #Because time is given in hours and we want it in seconds
+                                recurrent_cert_lifetime = int(float(fileLifeSTAR.read()))
+                                #recurrent_cert_endDate = timeAccordingToRFC(recurrent_cert_lifetime)
+                                #recurrent_cert_currentDate = timeAccordingToRFC()
+                                recurrent_cert_uuid = fileUuidSTAR.read()
+                                recurrent = True
+                                print ("Im gonna send")
+                                req = messages.CertificateRequest(csr=csr,recurrent=recurrent,recurrent_cert_validity=recurrent_cert_validity, recurrent_cert_lifetime=recurrent_cert_lifetime, recurrent_cert_uuid=recurrent_cert_uuid)
+                                print("This is what was sent: " , req)
+                                #os.remove()
+        """
+        recurrent = False
+        if os.path.isfile("../../STARValidityCertbot"):
+                fileValSTAR = open("../../STARValidityCertbot", "r")
+                if os.path.isfile("../../STARLifeTimeCertbot"):
+                        fileLifeSTAR = open("../../STARLifeTimeCertbot", "r")
+                        if os.path.isfile("../../STARUuidCertbot"):
+                                fileUuidSTAR = open("../../STARUuidCertbot", "r")
+                                recurrent_cert_validity = int(float(fileValSTAR.read())) * 60
 
-	
+                                recurrent_cert_lifetime = int(float(fileLifeSTAR.read()))
+                                #recurrent_cert_lifetime = 365
+                                recurrent_start_date = self.timeAccordingToRFC()
+                                recurrent_end_date = self.timeAccordingToRFC(recurrent_cert_lifetime)
+                                #recurrent_start_date = "2017-10-16T17:36:36.371237Z"
+                                #recurrent_end_date = "2018-10-16T17:36:36.372239Z"
+
+                                recurrent_cert_uuid = fileUuidSTAR.read()
+                                recurrent = True
+
+                                req = messages.CertificateRequest(csr=csr,recurrent=recurrent,recurrent_cert_validity=recurrent_cert_validity, recurrent_start_date=recurrent_start_date, recurrent_end_date=recurrent_end_date,recurrent_cert_uuid=recurrent_cert_uuid)
+                                #os.remove()
+        if not recurrent:
+                req = messages.CertificateRequest(csr=csr)
+        print "CSR sent to server is %s" % req
+
+
         # TODO: assert len(authzrs) == number of SANs
 
         content_type = DER_CONTENT_TYPE  # TODO: add 'cert_type 'argument
