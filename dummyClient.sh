@@ -24,11 +24,11 @@ echo "URI is: $var End of uri."
 step2=$(curl --cacert /usr/share/ca-certificates/mozilla/server.crt $var)
 echo "Step2 is: $step2"
 #step 3
-#returns the chained certificate in pem format
+#returns the rea
 
 step3=$(echo "$step2" | cut -d ' ' -f 3 | cut -d "}" -f 1)
 echo "Step 3 is: $step3"
-#echo "i should use curl --cacert ./serverKey/cert.pem https://CertificateAuthoritySTAR:9898/$step3"
 
 sleep 5;curl --cacert ./serverKey/cert.pem $step3
-#https://CertificateAuthoritySTAR:9898/$step3
+
+echo "end of Client"
