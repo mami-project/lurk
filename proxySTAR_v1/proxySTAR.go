@@ -1,6 +1,6 @@
 package main
 
-//Date 28/08
+//Date 21/08
 import (
     "bufio"
     "fmt"
@@ -12,7 +12,6 @@ import (
     "net/http"
     "os"
     "io"
-    "github.com/satori/go.uuid"
     "os/exec"
 )
 
@@ -120,7 +119,7 @@ func storeIssuedCerts (validity int) {
     var linkFileName = "link" + strconv.Itoa(cronTaskID)
     var csrFileName = "csr" + strconv.Itoa(cronTaskID)
     var validityFileName = "validity" + strconv.Itoa(cronTaskID)
-    var uriFileName = "uri" + strconv.Itoa(cronTaskID)
+    //var uriFileName = "uri" + strconv.Itoa(cronTaskID)
     var certFileName = "certificate.pem"
 
     //Creates storage directories
@@ -180,7 +179,7 @@ func storeIssuedCerts (validity int) {
         panic(err)
     }
     defer h.Close()
-    inCert, err := os.Open("ObtainedCERT.pem")
+    inCert, err := os.Open("/root/ObtainedCERTNEW.pem")
     if err != nil {
         panic(err)
     }
@@ -189,6 +188,7 @@ func storeIssuedCerts (validity int) {
 
 
     //Saves the uri
+    /*
     i, err := os.Create("/root/starCerts/" + certDirName + "/" + uriFileName)
     if err != nil {
 
@@ -196,7 +196,7 @@ func storeIssuedCerts (validity int) {
     }
     defer i.Close()
     i.WriteString(completionURL_value)
-
+*/
 
 }
 
@@ -205,7 +205,7 @@ Certbot uses STAR protocol if these files exist.
 Their contents are : validity, uuid and lifetime.
 */
 func createTmpFiles(validity int) {
-  completionURL_value = uuid.NewV4().String()
+  completionURL_value =  "certificateN" + strconv.Itoa(cronTaskID)
   //Creates a file with cert validity for local certbot to read and deletes the previous one
   _, noFile := os.Stat("STARValidityCertbot")
    if noFile == nil {
@@ -217,7 +217,7 @@ func createTmpFiles(validity int) {
           panic(toFileErr)
   }
   //Creates a file with cert uuid-URI for local certbot to read and deletes the previous one
-  _, noFile = os.Stat("STARUuidCertbot")
+/*  _, noFile = os.Stat("STARUuidCertbot")
    if noFile == nil {
           os.Remove("STARUuidCertbot") //Deletes previous file
   }
@@ -226,6 +226,7 @@ func createTmpFiles(validity int) {
   if toFileErr != nil {
           panic(toFileErr)
   }
+  */
   //Creates a file with cert lifetime for local certbot to read and deletes the previous one
   _, noFile = os.Stat("STARLifeTimeCertbot")
    if noFile == nil {
@@ -257,10 +258,41 @@ func post_completionURL (id, lifetime int, uri string) {
         http.HandleFunc("/star/registration/" + strconv.Itoa(id), func (w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
 
-        _, err := os.Stat("./starCerts/" + uri + "/" + "certificate.pem")
+        certLocation := "./starCerts/" + uri + "/" + "certificate.pem"
+        fmt.Printf("The cert should be available at: %s", certLocation)
+        _, err := os.Stat(certLocation)
         if err == nil {
+        //If certificate exists, then it gets its ID, converts it to lower case and sends the ID as the STAR URI where renewals are located.
+        opensslGetID := []string{"x509", "-in", certLocation, "-noout", "-serial"}
+        serial,err := exec.Command("openssl",opensslGetID...).Output()
+        if err != nil {
+                panic(err)
+        }
+        serialS := (string)(serial)
+        serialS = strings.ToLower(serialS)
+
+        //Because the serial is returned in format: "serial=..." by openssl, remove everything before the '='
+        serialOnly := strings.SplitN(serialS, "=", 2)
+
+        //Here the uri is trimmed because it contains not valid char
+        serialOnly[1] = serialOnly[1][:36]
+        var serialOnly_2 string = "https://CertificateAuthoritySTAR:9898/" + serialOnly[1]
+
+        fmt.Printf("The serial %t", serialOnly_2)
+
+        //getRenewalUri := []string{"--cacert", "./serverKey/cert.pem", "https://CertificateAuthoritySTAR:9898/ff822835fec078588cda4c3364d4a94b0db1                  "}
+        getRenewalUri := []string{"--cacert", "./serverKey/cert.pem",serialOnly_2}
+
+        fmt.Printf("INSIDE proxySTAR.go: The command is: %v", getRenewalUri)
+
+        serialST,err := exec.Command("curl",getRenewalUri...).Output()
+        if err != nil {
+                panic(err)
+        }
+        serialSTString := (string)(serialST)
+
          a := successfull_cert{status: "valid", lifetime: lifetime,
-             certificate: "https://CertificateAuthoritySTAR:9898/" +uri}
+             certificate: "https://CertificateAuthoritySTAR:9898/" + serialSTString}
         lifetimeDuration, err := time.ParseDuration(strconv.Itoa(lifetime) + "h")
         if err != nil {
           panic (err)
@@ -380,7 +412,7 @@ func rmTmpFiles () {
         panic (err)
     }
         */
-    err := os.Remove("ObtainedCERT.pem")
+    err := os.Remove("/root/ObtainedCERTNEW.pem")
     if err != nil {
         panic (err)
     }
@@ -392,10 +424,12 @@ func rmTmpFiles () {
     if err != nil {
         panic(err)
     }
+    /*
     err = os.Remove("STARUuidCertbot")
     if err != nil {
         panic(err)
     }
+    */
     err = os.Remove("tmpCsr")
     if err != nil {
         panic(err)
