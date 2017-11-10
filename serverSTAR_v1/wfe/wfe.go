@@ -19,6 +19,7 @@ import (
         "strings"
         "time"
 
+        "github.com/satori/go.uuid"
         "github.com/jmhodges/clock"
         "golang.org/x/net/context"
         jose "gopkg.in/square/go-jose.v2"
@@ -647,10 +648,12 @@ func (wfe *WebFrontEndImpl) verifyPOST(ctx context.Context, logEvent *requestEve
                 subStr3 := strings.SplitN(string(payload[:sizeOfPayload - 1]), "recurrent-start-date\": ", 2)
                 subStr4 := strings.SplitN(subStr3[1], ",", 3)
 
-
+                /*
                 subStr5 := strings.SplitN(string(payload[:sizeOfPayload - 1]), "recurrent_cert_uuid\": \"", 2)
                 subStr6 := strings.SplitN(subStr5[1], "\"", 3)
+                */
 
+                var uuidSTAR string = uuid.NewV4().String()
                 subStr7 := strings.SplitN(string(payload[:sizeOfPayload - 1]), "\"csr\":", 2)
                 subStr8 := strings.SplitN(subStr7[1], "\"", 2)
                 subStr9 := strings.SplitN(subStr8[1], "\"",2)
@@ -683,10 +686,17 @@ func (wfe *WebFrontEndImpl) verifyPOST(ctx context.Context, logEvent *requestEve
                 if toFileErr != nil {
                         panic(toFileErr)
                 }
-                toFileErr = ioutil.WriteFile("STARUuidWFE", []byte(subStr6[0]), 0644)
+                toFileErr = ioutil.WriteFile("STARUuidWFE", []byte(uuidSTAR), 0644)
                 if toFileErr != nil {
                         panic(toFileErr)
                 }
+
+                /*
+                _,toFileErr = os.Create("STARCertsIDWFE")
+                if toFileErr != nil {
+                        panic(toFileErr)
+                }
+                */
     //Creates storage directories
     if _, err := os.Stat("./starCerts"); os.IsNotExist(err) {
         err = os.Mkdir("./starCerts", 0777)
@@ -695,7 +705,7 @@ func (wfe *WebFrontEndImpl) verifyPOST(ctx context.Context, logEvent *requestEve
             panic(err)
         }
     }
-    err := os.Mkdir("./starCerts/" + subStr6[0], 0777)
+    err := os.Mkdir("./starCerts/" + uuidSTAR, 0777)
     if err != nil {
         panic(err)
     }
@@ -707,7 +717,7 @@ func (wfe *WebFrontEndImpl) verifyPOST(ctx context.Context, logEvent *requestEve
     }
 
     //Saves the csr
-    f, err := os.Create("./starCerts/" + subStr6[0] + "/csr")
+    f, err := os.Create("./starCerts/" + uuidSTAR + "/csr")
     if err != nil {
 
         panic(err)
@@ -716,17 +726,26 @@ func (wfe *WebFrontEndImpl) verifyPOST(ctx context.Context, logEvent *requestEve
     req.repairCsr(f) //Saves the csr in base64
 
     //Saves the validity
-    g, err := os.Create("./starCerts/" + subStr6[0] + "/validity")
+    g, err := os.Create("./starCerts/" + uuidSTAR + "/validity")
     if err != nil {
         panic(err)
     }
-    err = os.Chmod("./starCerts/" + subStr6[0] + "/validity", 0777)
+    err = os.Chmod("./starCerts/" + uuidSTAR + "/validity", 0777)
     if err != nil {
         panic(err)
     }
     defer g.Close()
     g.WriteString(subStr2[0])
 
+    //File to keep the real URI, it is the same of the directory
+    toFileErr = ioutil.WriteFile("./starCerts/" + uuidSTAR + "/renewalURI.txt", []byte(uuidSTAR), 0644)
+    if toFileErr != nil {
+        panic(toFileErr)
+    }
+    err = os.Chmod("./starCerts/" + uuidSTAR + "/renewalURI.txt", 0777)
+    if err != nil {
+        panic(err)
+    }
 
 
 }//end of storage
