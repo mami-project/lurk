@@ -17,11 +17,15 @@ if date "+%d %m" | grep -q "$getDeadLineD $getDeadLineM"; then
        sudo crontab -u root -l | grep -v "$domainName $getDeadLineD $getDeadLineM $uri" | sudo crontab -u root -
 else
         echo "Renews cert"
-	sudo rm "./starCerts/$uri/certificate.pem"
-	validityHours=$(cat "./starCerts/$uri/validity")
-	validityDays=$(($validityHours / 24))
-	sudo openssl x509 -req -extensions v3_req -extfile /etc/ssl/openssl.cnf -in ./starCerts/$uri/csr -CAkey ./test/test-ca.key -CA ./test/test-ca.pem -days $validityDays -set_serial "0x$(openssl rand -hex 18)" -out "./starCerts/$uri/certificate.pem"
+        sudo rm "./starCerts/$uri/certificate.pem"
+        validityHours=$(cat "./starCerts/$uri/validity")
+        validityDays=$(($validityHours / 24))
+        sudo openssl x509 -req -extensions v3_req -extfile /etc/ssl/openssl.cnf -in ./starCerts/$uri/csr -CAkey ./test/test-ca.key -CA ./test/test-ca.pem -days $validityDays -set_serial "0x$(openssl rand -hex 18)" -out "./starCerts/$uri/certificate.pem"
+        endDate=$(openssl x509 -in "./starCerts/$uri/certificate.pem" -noout -enddate)
+        startDate=$(openssl x509 -in "./starCerts/$uri/certificate.pem" -noout -startdate)
 
+        #Adds notBefore,notAfter at the begining of the cert file
+        sed -i "li$endDate" "./starCerts/$uri/certificate.pem"
+        sed -i "li$startDate" "./starCerts/$uri/certificate.pem"
 echo $cert | sudo tee -a "./starCerts/$uri/certificate.pem"
 fi
-
