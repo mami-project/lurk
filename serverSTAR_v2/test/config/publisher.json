@@ -1,0 +1,44 @@
+{
+  "publisher": {
+    "maxConcurrentRPCServerRequests": 100000,
+    "submissionTimeout": "5s",
+    "debugAddr": ":8009",
+    "tls": {
+      "caCertFile": "test/grpc-creds/minica.pem",
+      "certFile": "test/grpc-creds/publisher.boulder/cert.pem",
+      "keyFile": "test/grpc-creds/publisher.boulder/key.pem"
+    },
+    "grpc": {
+      "address": ":9091",
+      "clientNames": [
+        "ra.boulder",
+        "ocsp-updater.boulder"
+      ]
+    },
+    "saService": {
+      "serverAddresses": ["sa.boulder:19095"],
+      "timeout": "15s"
+    }
+  },
+
+  "statsd": {
+    "server": "localhost:8125",
+    "prefix": "Boulder"
+  },
+
+  "syslog": {
+    "stdoutlevel": 6
+  },
+
+  "common": {
+    "ct": {
+      "logs": [
+        {
+          "uri": "http://boulder:4500",
+          "key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYggOxPnPkzKBIhTacSYoIfnSL2jPugcbUKx83vFMvk5gKAz/AGe87w20riuPwEGn229hKVbEKHFB61NIqNHC3Q=="
+        }
+      ],
+      "intermediateBundleFilename": "test/test-ca2.pem"
+    }
+  }
+}

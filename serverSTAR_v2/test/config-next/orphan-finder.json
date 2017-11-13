@@ -1,0 +1,16 @@
+{
+  "syslog": {
+    "stdoutlevel": 7
+  },
+
+  "tls": {
+    "caCertFile": "test/grpc-creds/minica.pem",
+    "certFile": "test/grpc-creds/orphan-finder.boulder/cert.pem",
+    "keyFile": "test/grpc-creds/orphan-finder.boulder/key.pem"
+  },
+
+  "saService": {
+    "serverAddresses": ["sa.boulder:19095"],
+    "timeout": "15s"
+  }
+}

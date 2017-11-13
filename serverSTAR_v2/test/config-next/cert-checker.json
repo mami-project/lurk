@@ -1,0 +1,24 @@
+{
+  "certChecker": {
+    "dbConnectFile": "test/secrets/cert_checker_dburl",
+    "maxDBConns": 10,
+    "features": {
+      "AllowTLS02Challenges": true
+    },
+    "hostnamePolicyFile": "test/hostname-policy.json"
+  },
+
+  "pa": {
+    "challenges": {
+      "http-01": true,
+      "tls-sni-01": true,
+      "dns-01": true,
+      "tls-sni-02": true
+    }
+  },
+
+  "syslog": {
+    "stdoutlevel": 6,
+    "sysloglevel": 4
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "revoker": {
+    "dbConnectFile": "test/secrets/revoker_dburl",
+    "maxDBConns": 1,
+    "tls": {
+      "caCertFile": "test/grpc-creds/minica.pem",
+      "certFile": "test/grpc-creds/admin-revoker.boulder/cert.pem",
+      "keyFile": "test/grpc-creds/admin-revoker.boulder/key.pem"
+    },
+    "raService": {
+      "serverAddresses": ["ra.boulder:19094"],
+      "timeout": "15s"
+    },
+    "saService": {
+      "serverAddresses": ["sa.boulder:19095"],
+      "timeout": "15s"
+    }
+  },
+
+  "syslog": {
+    "stdoutlevel": 6,
+    "sysloglevel": 4
+  }
+}

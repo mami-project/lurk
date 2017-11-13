@@ -1,0 +1,16 @@
+cryptography>=0.8
+mock
+PyOpenSSL>=0.13
+pyrfc3339
+pytz
+requests[security]>=2.4.1
+setuptools>=1.0
+six
+
+[dev]
+nose
+tox
+
+[docs]
+Sphinx>=1.0
+sphinx_rtd_theme

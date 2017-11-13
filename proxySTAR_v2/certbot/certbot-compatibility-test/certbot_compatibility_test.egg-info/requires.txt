@@ -1,0 +1,13 @@
+certbot
+certbot-apache
+mock
+six
+requests
+zope.interface
+ndg-httpsclient
+pyasn1
+
+[docs]
+repoze.sphinx.autointerface
+Sphinx>=1.0
+sphinx_rtd_theme
