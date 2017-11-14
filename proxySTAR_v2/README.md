@@ -21,67 +21,79 @@ Parts involved in STAR:
 
 *****************INSTALLATION GUIDE*****************
 
+Fully read each step before doing anything :)
 These are the steps to get the whole simulation going:
 
-- Prepare 3 VM using ubuntu and name them: Server, Proxy and Client
+1. Prepare 3 VM using ubuntu 14.04 trusty and name them: Server, Proxy and Client
 
-Prepare the Server: //this is the first VM
+Now let's prepare the Server: //this is the first VM
 
-- In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently in https://github.com/mami-project/lurk/tree/master/serverSTAR_v1. NOTE: When you finish copying,
-everything must be inside letsencrypt/boulder/, if you do an "$ls" in letsencrypt/boulder/, it must return the files that are currently under serverSTAR_v1).
-Using "git clone https://github.com/mami-project/lurk" is the fastest way to download all the files, but you will have to remove all the other lurk files but serverSTAR_v1.
 
-- Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official documentation available at: https://golang.org/doc/install. You will have to add it to your $PATH, everything is explained in the documentation link. Also, because STAR uses other gits dont forget to place them in /usr/local/go/src/github. These gits are in gopath file.
+2. Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official 
+documentation available at: https://golang.org/doc/install.
 
-- Fully install Docker and Docker-Compose: https://docs.docker.com/compose/install/ just follow the steps and test that the hello-world image works. I'm using version 17.03.1-ce for Docker and version 1.12.0 for Docker-Compose.
+3. In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently 
+in https://github.com/mami-project/lurk/tree/master/serverSTAR_v2. NOTE: When you finish copying, everything must be inside 
+letsencrypt/boulder/. Doing an "$ls" in letsencrypt/boulder/ must return the files that are currently under serverSTAR_v2).
 
-- Go to your file "boulder/test/config/va.json" and make sure your port config in va is : 80 for httpPort, 5001 for httpsPort and 5001 for tlsPort.(Some of these changes may be redundant, but this way it works, so don't ask ;) )
-- Now go to Docker's configuration file: "boulder/docker-compose.yml" and check that in the list of ports you have 80:80 and 443:443, be careful NOT TO TAB as it is an illegal char (these 2 steps are already done if you download my repo, do them if you are using common Boulder)
+Using "$git clone https://github.com/mami-project/lurk" is the fastest way to download all the server files, however, because clone command
+downloads the full repo you will have to manually delete all the other directories that are used for client and proxy.
 
-- Back in "boulder/docker-compose.yml" change the FAKE_DNS field to the IP of the VM that will act as your proxy.
 
-- Set ufw status to inactive: sudo ufw disable
-- Check your iptables policy: "sudo iptables -L" and set CHAIN FORWARD policy to accept if it is currently in DROP mode: "sudo iptables -P FORWARD ACCEPT"
-- Make sure you can reach the other machines with ICMP by pinging them and change the route table if needed so all calls to 172.17.0.0
-are redirected to your server's IP.
+4. Fully install Docker and Docker-Compose: https://docs.docker.com/compose/install/ just follow the steps and test that the hello-world 
+image works. I'm using version 17.03.1-ce for Docker and version 1.12.0 for Docker-Compose.
 
-- Open /etc/hosts and add these 2:
+5. Go to your file "boulder/test/config/va.json" and make sure your port config in va is : 80 for httpPort, 5001 for httpsPort and 5001 for 
+tlsPort.(Some of these changes may be redundant, but this way it works, so keep it that way ;) )
+6. Now go to Docker's configuration file: "boulder/docker-compose.yml" and check that in the list of ports you have 80:80 and 443:443, 
+be careful NOT TO TAB as it is an illegal char (these 2 steps are already done if you download my repo, do them if you are using common Boulder)
+
+7. Back in "boulder/docker-compose.yml" change the FAKE_DNS field to the IP of the VM that will act as your proxy.
+
+8. Set ufw status to inactive: sudo ufw disable
+9. Check your iptables policy: "$sudo iptables -L" and set CHAIN FORWARD policy to accept if it is currently to DROP mode: "$sudo iptables -P FORWARD ACCEPT"
+10. Make sure you can reach the other machines(client and proxy) with ICMP by pinging them: "$ping remoteVM". 
+
+11. Open /etc/hosts and add these 2:
 
 	172.17.0.4      acme-v01.api.letsencrypt.org boulder //this is Boulder's local IP, at least in my machine
 
 	/*If using "ifconfig" in the server returns you an interface called docker0 172.17.0.1, then 172.17.0.4 should be your boulder's
 	IP too.*/
 
-	"proxy's IP"  bye.com //this is the web hosted for the example. Because it is not available in the Web, the server must know
-	that it is in the proxy machine, so add it here.
+	X.X.X.X  bye.com //this is the web hosted for the example. Because it is not available in the Web, the server must know
+	where it is. Subsitute the "Xs" with your proxy's IP.
 
--Get a selfsigned certificate and place it in ./boulder:
-"openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365"
-In my case I named the CN "CertificateAuthoritySTAR", REMEMBER this name, because you will need to add it in the /etc/hosts file of the proxy.
+12.Get a selfsigned certificate and place it in ./boulder:
+"$openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365"
+In my case I named the CN field "CertificateAuthoritySTAR", REMEMBER this name, because you will need to add it in the /etc/hosts file of the proxy.
 Remember to not cypher the key file. If you accidentally did, use:
-"openssl rsa -in key.pem -out key.pem" //to extract the key
+"$openssl rsa -in key.pem -out key.pem" //to extract the key
 
-Prepare the Proxy: //this is the second VM
 
--The current proxy has been tested as root so use: "sudo -i" and place a new directory there with all the files in https://github.com/mami-project/lurk/tree/master/proxySTAR_v1 so that the end directory of files such as proxySTAR.go and termination.go is "/root/"
+Now it is time to prepare the Proxy: //this is the second VM
+
+1.The current proxy has been tested as root so use: "$sudo -i" to become root and paste all the files in https://github.com/mami-project/lurk/tree/master/proxySTAR_v2 
+so that the end directory of files such as proxySTAR.go and termination.go is "/root/proxySTAR.go" "/root/termination.go"
 Again, using git clone is the fastest way.
 
-- In the new directory go to certbot/ and type: 
-"./certbot-auto --os-packages-only"
-"./tools/venv.sh"
-"source ./venv/bin/activate" (You always need this ON so remember to execute this last
-command again if you exit the VM).
+2. In the new directory go to certbot/ and type: 
+"#./certbot-auto --os-packages-only"
+"#./tools/venv.sh"
+"#source ./venv/bin/activate" (You always need this ON so remember to execute this last command again if you exit the VM).
 
-- Declare global environment:  export SERVER=http://172.17.0.4:4000/directory    (this is where Boulder is listening)
+3. Declare global environment:  "#export SERVER=http://172.17.0.4:4000/directory"    (this is where Boulder is listening)
 
-- Install Go, my version ($go version) is : go1.8.2 linux/amd64
+4. Install Go, my version (#go version) is : go1.8.2 linux/amd64
 
-- Set GOPATH to /root/gopath and PATH to /root/go/bin. E.g.: PATH=$PATH:/root/go/bin
+5. Set PATH to /root/go/bin. E.g.: "#PATH=$PATH:/root/go/bin"
 
-- Make the same icmp and iptables checks that we did preparing the server: chain policy set to ACCEPT and pinging between VMs.
+6. Make the same icmp and iptables checks that we did preparing the server: chain policy set to ACCEPT and pinging between VMs.(steps 8 and 9)
 
-- Host some website. This is the site for which we are gonna request the certificates. The way I did it is using Apache (e.g. bye.com):
-	1. Place an html file in /var/www/bye.com/html/bye.html. An example could be:
+7. Edit "/etc/hosts" and add : "172.17.0.4 CertificateAuthoritySTAR". The domain name is that you gave to the Server's self-signed certificate.
+
+8. Host some website. This is the site for which we are gonna request the certificates. The way I did it is using Apache (e.g. bye.com):
+	8.1. Place an html file in "/var/www/bye.com/html/bye.html". An example could be:
 
 	```<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
 	<HTML>
@@ -96,9 +108,9 @@ command again if you exit the VM).
 	</BODY>
 	</HTML>
 
-	2. Go to /etc/apache2/sites-available and copy a file called 000-default.conf in the same directory as bye.com.conf: "sudo cp
-	000-default.conf bye.com.conf"
-	3. Open this new file and make sure VirtualHost in the first line is set to *:80 and the rest of the fields look like this
+	8.2. Go to "/etc/apache2/sites-available" and copy a file called "000-default.conf" in the same directory as "bye.com.conf":
+	"sudo cp -a 000-default.conf bye.com.conf"
+	8.3. Open this new file and make sure the field VirtualHost in the first line is set to *:80 and the rest of the fields look like this
 	(although ServerAdmin isn't important for now so leave it out if you want):
 
 	ServerAdmin info@bye.com
@@ -106,48 +118,57 @@ command again if you exit the VM).
         ServerAlias www.bye.com
         DocumentRoot /var/www/bye.com/html
 
-  4. In sites-available run this commands:
-    	sudo a2ensite bye.com.conf
-    	sudo a2dissite 000-default.conf
-    	sudo service apache2 restart
+    8.4. In sites-available run this commands:
+    	"#a2ensite bye.com.conf"
+    	"#a2dissite 000-default.conf"
+    	"#service apache2 restart"
 
 	DONE ;)
 
-- Now it comes the most difficult step: Preparing the proxy for the http challenge. This is the challenge that we will use in the request. Create 2 new directories so the end result is like this:  /var/www/bye.com/html/.well-known/acme-challenge
+9. Now it comes the most difficult step: Preparing the proxy for the http challenge. Create 2 new directories so the end result is like this:  "/var/www/bye.com/html/.well-known/acme-challenge"
 
-- IMPORTANT: Now you have to make sure that you can access the directory acme-challenge, so place a hello.html file there and try to reach it with curl from the server:
-$curl http://YOUR_SERVER'S_IP/.well-known/acme-challenge/hello.html
+ IMPORTANT: When done, make sure that you can access the directory acme-challenge from another VM, so place a "hello.html" file there and try 
+to reach it with curl from the server: "$curl http://YOUR_PROXY'S_IP/.well-known/acme-challenge/hello.html"
 
-Take the previous "bye.html" as an e.g. but rename it to hello.html
+For the file contents, just take the previous "bye.html" as an e.g. but rename it to hello.html or keep it as bye.html(but then change the curl 
+domain too)
 
-If it works feel free to delete it. If it doesn't, change the file permissions going to /var/www and typing "sudo chmod -R 755 bye.com" and change the user so it isn't root:
-"sudo chown -R user:user bye.com" <----IMPORTANT: "user:user" is your name and group, so if your user in the VM is Josh from the Goonies--> sudo chown -R Josh:Goonies bye.com
+If it works, feel free to delete it. If it doesn't, change the file permissions going to "/var/www" in your proxy and typing "#chmod -R 755 bye.com"
+and change the user so it isn't root:
+"#chown -R user:user bye.com" <----IMPORTANT: "user:user" is your name and group, so if your user in the VM is Josh from the 
+Goonies--> "#chown -R Josh:Goonies bye.com"
 
--For the simulation to work, you also need to generate a certificate using openSSL so that proxy and client can use https:
-$openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365
+10.For the simulation to work, you also need to generate a certificate using openSSL so that proxy and client can use https:
+"#openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365"
 
 This generates a certificate and a key that have to be kept in the same directory as proxySTAR.go.
-I am including a cert and key in the Github, but they may be outdated.
+I am including a cert and key in the Github, but they may be outdated if you are reading this.
 
--Give execution permisions to all bash scripts executing in /root/: "sudo +x chmod *.sh"
--Make a new file called starCerts in /root/ and create a txt file called "myDomains.txt" with all the domains you want to be able
+11.Give execution permisions to all bash scripts executing in /root/: "#sudo +x chmod *.sh"
+12.Make a new file called "starCerts" in /root/ and create a txt file called "myDomains.txt" with all the domains you want to be able
 to delegate. This file shall contain a list of all the domains you may delegate. The format is: "domain + new line".
-E.g. cat myDomains.txt should return:
+E.g. "#cat myDomains.txt" should return:
 
 bye.com
 heelo.com
 imRunningOutOfIdeasForNewDomains.com
 
--Last step. Create a file in /root/ called "serverKey" and a text file inside named: "cert.pem":
-#mkdir serverKey
-#cd serverKey
-#nano cert.pem
+12.Last step. Create a file in "/root/" called "serverKey" and a text file inside named: "cert.pem":
+"#mkdir serverKey"
+"#cd serverKey"
+"#nano cert.pem"
 
 cert.pem is the selfsigned certificate you obtained in the last step of Boulder VM installation, so go to the server VM, copy it and paste its contents.
--Now add the name that you gave to the CN in your certificate with its VM's IP to the /etc/hosts file, e.g.
-"192.168.122.128 CertificateAuthoritySTAR"
 
--Now test if you can access Boulder VM from proxy:
+13.Now add the name that you gave to the CN in your certificate with its VM's IP to the "/etc/hosts" file, e.g.
+"172.17.0.4 CertificateAuthoritySTAR"
+
+14. Let's make it possible to access Boulder's docker:
+
+"#route add -net 172.17.0.0 gw XXXXXX netmask 255.255.0.0 dev eth0" //XXXXX should be your server's name and eth0 is the default interface.
+
+///
+-Now test if you can access Boulder's docker from the proxy:
 1. In the server, go to the boulder file and launch it:
 $docker-compose build
 $docker-compose up
@@ -168,20 +189,27 @@ sudo route add -net 172.17.0.0 gw acme-server2 netmask 255.255.0.0 dev eth0
 
 -> 172.17.0.0 refers to the docker network, acme-server2 is the name of the VM where the dockers are running.
 
+///
+
+The client VM will be prepared during the simulation process, it doesn't requiere any specific sofware.
 *****************COMMON PROBLEMS*****************
 
 1.Proxy "fails" when you lauch the client. First stop the proxy. Now type: "sudo rm -rf "/etc/letsencrypt". Try again. If it keeps 
-failing it probably is a problem with the routing. To make sure lets check the logfiles: "cat /var/log/letsencrpy/letsencrypt.log", in the last paragraph it must say something similar to "No route to host". Fix it adding the routes (like explained in the previos section). Remember that the proxy needs to be able to ping/traceroute to 172.17.0.4 (boulder docker in the server VM). On the opposite side, the client needs to be able to connect to the proxy and to the server's IP, not to the docker! (to retrieve the certificate).
+failing it probably is a problem with the routing. To make sure check the logfiles in proxy's VM: "cat /var/log/letsencrpy/letsencrypt.log",
+in the last paragraph it must say something similar to "No route to host". Fix it adding the routes (like explained in the previos section).
+Remember that the proxy needs to be able to ping/traceroute to 172.17.0.4 (boulder docker in the server VM). On the opposite side, the client 
+needs to be able to connect to the proxy and to the server's IP, not to the docker! (to retrieve the certificate).
 
-2.Certificate is not issued. Check that your proxy is able to solve the challenge. Place an html file in /var/www/bye.com/html/.well-known/acme-challenge and try to access it as explained before.
+2.Certificate is not issued. Check that your proxy is able to solve the challenge. Place an html file in /var/www/bye.com/html/.well-known/acme-challenge 
+and try to access it as explained before.
 
 3.I did the installation, and tried common problems 1 and 2 but nothing works! 
 Check that your iptable's forward policy is set to accept, and that you have PK certificates generated with openssl for proxy and server. 
 Also, the client needs to have proxy's and server's certificate. 
 In the example, client keeps server's cert in "serverKey/cert.pem" and proxy's cert is in "/usr/share/ca-certificates/mozilla/server.crt". 
-Server keeps his certificate and private key (decoded!) as cert.pem and key.pem in boulder/
-Proxy keeps his certificate and private key (decoded!) as server.crt and server.key in /root
-Proxy keeps server's certificate in serverKey/cert.pem
+Server keeps his certificate and private key (decoded!) as cert.pem and key.pem in "boulder/"
+Proxy keeps his certificate and private key (decoded!) as server.crt and server.key in "/root"
+Proxy keeps server's certificate in "serverKey/cert.pem"
 
 
 
@@ -190,31 +218,36 @@ Proxy keeps server's certificate in serverKey/cert.pem
 
 HOW TO RUN A FULL SIMULATION
 
-0. If you have restarted the server VM and want to ask for new certificates or mainly if some error happens but it is not fatal for the CA (if it is still UP), then
-go to the proxy and execute: #rm -rf /etc/letsencrypt
-1. In the server go to ~/gopath/src/github.com/letsencrypt/boulder
+0. If you have restarted the server VM and want to ask for new certificates or mainly if some error happens but it is not fatal for the CA (if it is still UP), 
+then go to the proxy and execute: "#rm -rf /etc/letsencrypt"
+1. In the server go to "~/gopath/src/github.com/letsencrypt/boulder"
 2. Run the renewalManager in background:
- 	$go run renewalManager.go $time.Milliseconds &
+ 	"$go run renewalManager.go $time.Milliseconds &"
 	//to update the crontab every 5s run: "go run renewalManager 5000 &"
 	//Uncomment the line that says "Message" in function checkStatus() if you want to get notified when the renewal does a check.
-	...and these 2 commands to run Boulder:
-
+	...and these 3 commands to run Boulder:
+	
+	$docker-compose rm
 	$docker-compose build
 	$docker-compose up
 
-	And wait until it says "All servers running. Hit ^C to kill", the first time it may take a while
+	And wait until it says "All servers running. Hit ^C to kill", the first time it may take a while. The first command is just to free memory from old dockers.
 
-3. Go to proxy as superuser ("sudo -i") and type in ~/certbot# source ./venv/bin/activate
-4. Then: export SERVER=http://172.17.0.4:4000/directory
+3. Go to proxy as superuser ("$sudo -i") and type in "~/certbot"  "#source ./venv/bin/activate"
+4. Then: "export SERVER=http://172.17.0.4:4000/directory"
 4.5 If you just followed the installation there's not need to do 3 & 4, you just did them.
 
-5. Now you are ready to go with proxy's main code: "go run proxySTAR.go $maxLifeTime $maxValidity $pathToCert"
-//The first two variables set the maximum lifetime and validity, the last one is the path to the cert needed to use tls with the server.
+5. Now you are ready to go with proxy's main code: "go run proxySTAR.go $maxLifeTime $maxValidity $pathToDomainList"
+//The first two variables set the maximum lifetime(days)and validity(hours).
 You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
-6. Go to client VM and POST at https://certProxy:443/star/registration (Don't forget to add certProxy to your /etc/hosts as the Proxy's IP).
+
+IMPORTANT: At this point you can jump to step 13 if you prefer to use the auto-client, go to next step if you prefer to do 
+it manually. If you chose the first option just take a moment to see the CSR structure in step 6 before jumpling to step 13.
+Also note that because the purpose of STAR is automate the process, the manual client may not be up to date right now---> TO DO
+
+6. Go to client's VM and POST at https://certProxy:443/star/registration (Don't forget to add certProxy to your /etc/hosts as the Proxy's IP).
 	For now, the full command looks like this:
-		curl --cacert /usr/share/ca-certificates/mozilla/server.crt \
-		-H "Content-Type: application/json" -X POST -d \
+		curl --cacert /usr/share/ca-certificates/mozilla/server.crt -H "Content-Type: application/json" -X POST -d \
 		@fullCSR2 https://certProxy:443/star/registration
 
 		*server.crt is an openssl cert I generated so proxy and client can use https, it is the same certificate that we
@@ -248,11 +281,13 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 
 		And copy it into a new file following the format above. Dont forget to add lifetime and validity at the end.
 
+
 7. After the client executes the command in step 6 it will get a message similar to this one:
 "Location: https://certProxy/star/registration/0"
  Now if the client goes to this URI: "$curl --cacert /usr/share/ca-certificates/mozilla/server.crt https://certProxy:443/star/registration/0"
  It will get you a message back. This response can be {pending} or {status, lifetime,the uuid4 that serves as URI}
  E.g. {valid 365 20b1bac1-db72-42f4-9620-add03c789e36}
+ 
 8. Then the client can retrieve the chained cert by using:
 	"curl --cacert ./serverKey/cert.pem https://CertificateAuthoritySTAR:9898/20b1bac1-db72-42f4-9620-add03c789e36"
 
@@ -265,14 +300,24 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 9. To check that the renewalManager has done it's job -or if you forgot to run it, you can do so now and it will still work- put the Boulder in background:
 "^Z"
 "bg"
-And check the crontab: "sudo crontab -l",
+And check the crontab: "$sudo crontab -l",
 
 10. Renewals will be at the same URI that the first certificate, so DNO is not needed adnymore and can be turned OFF if you want so.
 
-11.Note that a new directory has been created in the Server VM, this directory contains NEEDED information for the renewal so deleting it will cause renewals to fail.
+11.Note that a new directory has been created in the Server VM, this directory contains NEEDED information for the renewal so deleting it will cause renewals 
+to fail.
 
 12. To test the termination enter in the proxy and type "$go run termination.go $uuid",
 with the $uuid being the uuid where the certificate to terminate is renewed.
+
+13. Auto-client: To get the certificate in one try just go to the clientVM and place there the file dummyClient.sh available at 
+https://github.com/mami-project/lurk, this time just copy-paste the file.
+
+14. Execute the client: sh dummyClient.sh $cert $CSR //Cert refers to the proxy's certificate and csr is the textfile containing csr,
+lifetime and validty as seen in step 6. Don't forget to add "@" before the file's name. After executing it the cert should prompt.
+
+15. Renewal: To terminate an auto renewal from DNO: #go run termination.go $uuid --> TO DO, improve the message.
+
 
 *****************ROUND-TRIPS GUIDE*****************
 
@@ -285,6 +330,8 @@ Time 0:
 		Proxy hosts a web using apache
 
 	Communication between Proxy and Client is safe: Proxy has a cert issued by openssl and the client acknowledges the site as safe.
+	This cert is kept as "/root/server.crt" together with its key "/root/server.key" in the DNO and at 
+	"/usr/share/ca-certificates/mozilla/server.crt" for the client.
 	READ BOTH INSTALLATION AND SIMULATION GUIDE IF YOU ARE ALREADY LOST :)
 
 Time 1:
@@ -342,17 +389,17 @@ Time 2:
 
 	Proxy: Certbot
 			Normal execution of the Certbot client with csr as a parameter but with 4 extra fields sent in the POST to
-			Boulder added in acme/acme/client.py and messages.py.
+			Boulder added in "acme/acme/client.py" and "acme/acme/messages.py".
 			These fields are:
-			{recurrent_cert_uuid,
-			recurrent,
-			recurrent_cert_validity,
-			recurrent_cert_lifetime}
+			{recurrent,
+			recurrent-start-date,
+			recurrent-end-date,
+			recurrent-certificate-validity}
 
-			recurrent_cert_uuid: contains the UUID where certificates will be posted
+
 			recurrent: contains parameter true and it serves to turn STAR ON
-			recurrent_cert_validity: validity for STAR certificates
-			recurrent_cert_lifetime: contains the lifetime, so it is key for renewal
+			recurrent-start-date and recurrent-end-date : validity for STAR certificates
+			recurrent-certificate-validity: contains the lifetime, so it is key for renewal
 
 			When certbot is called it checks if file the tmp files with the STAR information exist, if so, it then reads the
 			these files, deletes them and sends them to Boulder in the same certificate request.
@@ -364,9 +411,9 @@ Time 2:
 				The main directory is "./starCerts" and will be created in the same directory where Boulder is. This
 				means, in my case it is in:
 
-				~/gopath/src/github.com/letsencrypt/boulder/starCerts
+				"~/gopath/src/github.com/letsencrypt/boulder/starCerts"
 
-				In ./starCerts files with the cert uuid as its name will be created, inside each file the info for the
+				In ./starCerts files with the cert uuid(This uuid has just been created by the wfe.go) as its name will be created, inside each file the info for the
 				certificate renewal will be storaged:
 
 				certificate.pem
@@ -392,7 +439,7 @@ Time 2:
 
 			STAR function postAtUuid serves the file certificate.pem at:
 			172.17.0.4:9898/$URI
-			this means that it will be serving a STAR certificate for every STAR URI.
+			however, only the first certificate is at 'that' uri.
 
 			STAR function addSTARToCron creates a file called "./renewMTmp/renew1" and it
 			saves info for the renewals: {domain, lifetime, uuid}
@@ -420,7 +467,9 @@ Time 3:
 		csr: The csr the client used.
 		uri: The uri where the STAR certificates are posted (unique for each certificate)
 		validity: validity of every STAR
-
+		
+		Proxy will also read the cert's UUID and send do a POST to the cert using that UUID as URI, from there he will retrieve the URI
+		where cert and renewals will be posted. This URI is immediately sent to the client.
 		Keeping these files isn't NEEDED for STAR but because the Proxy is the real owner of the domains, it is considered that
 		knowing what name delegations are active is key. What's more, keeping the uri will allow the DNO to terminate the
 		renewals.
@@ -461,5 +510,3 @@ Time 5:
 			The most important part of this new issued certificate is that it contains the same key Boulder uses and that is
 			located in boulder/test/test-ca.key
 
-*To terminate an auto renewal from DNO:
-#go run termination.go $uuid
