@@ -1,6 +1,0 @@
-{
-    "module": "/usr/local/lib/libpkcs11-proxy.so",
-    "tokenLabel": "root",
-    "pin": "5678",
-    "privateKeyLabel": "root_key"
-}

@@ -1,3 +1,0 @@
-[certbot.plugins]
-dns-nsone = certbot_dns_nsone.dns_nsone:Authenticator
-

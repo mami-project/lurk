@@ -1,3 +1,0 @@
-[certbot.plugins]
-apache = certbot_apache.configurator:ApacheConfigurator
-

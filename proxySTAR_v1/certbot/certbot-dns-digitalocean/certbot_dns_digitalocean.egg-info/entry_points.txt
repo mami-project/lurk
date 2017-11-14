@@ -1,3 +1,0 @@
-[certbot.plugins]
-dns-digitalocean = certbot_dns_digitalocean.dns_digitalocean:Authenticator
-

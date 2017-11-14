@@ -1,3 +1,0 @@
-[console_scripts]
-certbot-compatibility-test = certbot_compatibility_test.test_driver:main
-

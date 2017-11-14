@@ -1,3 +1,0 @@
-[console_scripts]
-letshelp-certbot-apache = letshelp_certbot.apache:main
-

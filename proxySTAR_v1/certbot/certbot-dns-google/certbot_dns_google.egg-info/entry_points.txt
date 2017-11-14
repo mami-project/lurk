@@ -1,3 +1,0 @@
-[certbot.plugins]
-dns-google = certbot_dns_google.dns_google:Authenticator
-

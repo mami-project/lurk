@@ -1,3 +1,0 @@
-[certbot.plugins]
-dns-dnsmadeeasy = certbot_dns_dnsmadeeasy.dns_dnsmadeeasy:Authenticator
-
