@@ -243,7 +243,7 @@ You will see a message: "Proxy STAR status in middlebox is: ACTIVE"
 
 IMPORTANT: At this point you can jump to step 13 if you prefer to use the auto-client, go to next step if you prefer to do 
 it manually. If you chose the first option just take a moment to see the CSR structure in step 6 before jumpling to step 13.
-Also note that because the purpose of STAR is automate the process, the manual client may not be up to date right now---> TO DO
+Also note that because the purpose of STAR is automate the process, the manual client may not be up to date right now.
 
 6. Go to client's VM and POST at https://certProxy:443/star/registration (Don't forget to add certProxy to your /etc/hosts as the Proxy's IP).
 	For now, the full command looks like this:
@@ -361,8 +361,8 @@ Time 1:
 			Now the code runs parseDomain()
 
 			parseDomain func compares the domain in csr with the domains available for renewal in starCerts/myDomains.txt
-			and returns a boolean true if the requested domain is a valid one. If it isn't it returns an error message to
-			the STAR client and waits for a new request.
+			and returns a boolean true if the requested domain is a valid one. If it isn't, it returns an error message to
+			the STAR client and awaits for a new request.
 
 			At this point in time, the proxy has info about: domain, lifetime and validity and has validated that all the
 			fields are OK so it sends back the URL where the info about the certificate will be posted:
@@ -413,7 +413,7 @@ Time 2:
 
 				"~/gopath/src/github.com/letsencrypt/boulder/starCerts"
 
-				In ./starCerts files with the cert uuid(This uuid has just been created by the wfe.go) as its name will be created, inside each file the info for the
+				In ./starCerts files with the cert uuid(This uuid has just been created by the wfe.go) as its name will 				be created, inside each file the info for the
 				certificate renewal will be storaged:
 
 				certificate.pem
