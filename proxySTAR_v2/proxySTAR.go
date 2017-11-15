@@ -1,6 +1,6 @@
 package main
 
-//Date 14/11
+//Date 21/08
 import (
     "bufio"
     "fmt"
@@ -19,6 +19,9 @@ var completionURL_value = "pending" //message that pops when STAR clientes asks 
 var cronTaskID = 0 //counter for crontab
 var LifeTime = 0
 var maxLifeTime = 0
+var certificateCA string
+var certificateOwn string
+var keyOwn string
 var maxValidity = 0
 var fileWithDomainList string
 
@@ -274,14 +277,14 @@ func post_completionURL (id, lifetime int, uri string) {
         //Because the serial is returned in format: "serial=..." by openssl, remove everything before the '='
         serialOnly := strings.SplitN(serialS, "=", 2)
 
-	//Here the uri is trimmed because it contains not valid char
-	serialOnly[1] = serialOnly[1][:36] 
+        //Here the uri is trimmed because it contains not valid char
+        serialOnly[1] = serialOnly[1][:36]
         var serialOnly_2 string = "https://CertificateAuthoritySTAR:9898/" + serialOnly[1]
 
         fmt.Printf("The serial %t", serialOnly_2)
 
         //getRenewalUri := []string{"--cacert", "./serverKey/cert.pem", "https://CertificateAuthoritySTAR:9898/ff822835fec078588cda4c3364d4a94b0db1                  "}
-        getRenewalUri := []string{"--cacert", "./serverKey/cert.pem",serialOnly_2}
+        getRenewalUri := []string{"--cacert", certificateCA, serialOnly_2}
 
         fmt.Printf("INSIDE proxySTAR.go: The command is: %v", getRenewalUri)
 
@@ -290,7 +293,7 @@ func post_completionURL (id, lifetime int, uri string) {
                 panic(err)
         }
         serialSTString := (string)(serialST)
-	
+
          a := successfull_cert{status: "valid", lifetime: lifetime,
              certificate: "https://CertificateAuthoritySTAR:9898/" + serialSTString}
         lifetimeDuration, err := time.ParseDuration(strconv.Itoa(lifetime) + "h")
@@ -439,17 +442,20 @@ func rmTmpFiles () {
 
 
 func main() {
-    if len(os.Args) != 4 {
-        fmt.Printf("USAGE: command maxLifeTime maxValidity pathToDomainsList\n")
+    if len(os.Args) != 7 {
+        fmt.Printf("USAGE: command $maxLifeTime $maxValidity $pathToDomainsList $pathToCAsCert $pathToOwnCert $pathToOwnKey\n")
         os.Exit(1)
      }
     maxLifeTime,_ = strconv.Atoi(os.Args[1])
     maxValidity,_ = strconv.Atoi(os.Args[2])
     fileWithDomainList = os.Args[3]
+    certificateCA = os.Args[4]
+    certificateOwn = os.Args[5]
+    keyOwn = os.Args[6]
 
     fmt.Println("Proxy STAR status in middlebox is: ACTIVE")
     http.HandleFunc("/star/registration", parseJsonPOST)
-    err := http.ListenAndServeTLS(":443", "server.crt", "server.key", nil)
+    err := http.ListenAndServeTLS(":443", certificateOwn, keyOwn, nil)
     if err != nil {
         panic(err)
     }
