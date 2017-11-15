@@ -33,7 +33,7 @@ step3=$(echo "$step2" | cut -d ' ' -f 3 | cut -d "}" -f 1)
 echo "Step 3 is: $step3"
 
 sleep 5
-curl --cacert $caCert $step3 | sudo tee -a $saveAt
+curl --cacert $caCert $step3 | sudo tee $saveAt
 
 
 echo "end of Client"
