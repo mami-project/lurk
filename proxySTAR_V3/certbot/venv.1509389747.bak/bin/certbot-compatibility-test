@@ -1,0 +1,12 @@
+#!/root/certbot/venv/bin/python2
+# EASY-INSTALL-ENTRY-SCRIPT: 'certbot-compatibility-test','console_scripts','certbot-compatibility-test'
+__requires__ = 'certbot-compatibility-test'
+import re
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(
+        load_entry_point('certbot-compatibility-test', 'console_scripts', 'certbot-compatibility-test')()
+    )

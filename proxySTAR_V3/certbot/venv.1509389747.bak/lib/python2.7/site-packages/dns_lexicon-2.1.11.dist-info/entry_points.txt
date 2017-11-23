@@ -1,0 +1,3 @@
+[console_scripts]
+lexicon = lexicon.__main__:main
+
