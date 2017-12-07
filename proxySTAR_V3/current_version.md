@@ -112,8 +112,8 @@ DNO keeps every tuple {csr, renewal-uri, validity} it has issued so it has the *
 This command stops renewals for *renewal-uri* : 0909...
 In order to do so, DNO requests a nonce to the Server and sends a JWT when it receives it.
 
-### 2.RenewalManager receives termination request
+### 3.2.RenewalManager receives termination request
 
-Renewal manager deletes the cronjob + *cert file* but still serves at *renewal-uri* as it was pointed in **2.Renewal in TO DO?**. New 
+Renewal manager deletes the cronjob + *cert file* but still serves at *renewal-uri* as it was pointed in **2.1 Renewal in TO DO?**. New 
 client requests to *renewal-uri* will return `Order status: canceled`. 
 RenewalManager is listening at `:9200 /getNonce` and `:9200 /terminate` and uses its own cert for TLS.
