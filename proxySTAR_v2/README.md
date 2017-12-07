@@ -29,13 +29,14 @@ These are the steps to get the whole simulation going:
 Now let's prepare the Server: //this is the first VM
 
 
-2. Install GO and set environment variable PATH to /usr/local/go/bin. My version ($go version)  is "go1.8.1 linux/amd64". Go's official 
-documentation available at: https://golang.org/doc/install.
+2. Install GO and set environment variable PATH to `/usr/local/go/bin`. My version (`$go version`)  is "`go1.8.1 linux/amd64`". Go's 
+official documentation available at: https://golang.org/doc/install.
 
-3. In your home directory create: ~/gopath/src/github.com/letsencrypt/boulder and place all the files there.(the files that are currently 
-in https://github.com/mami-project/lurk/tree/master/serverSTAR_v2. NOTE: When you finish copying, everything must be inside 
-letsencrypt/boulder/. Doing an "$ls" in letsencrypt/boulder/ must return the files that are currently under serverSTAR_v2).
-
+3. In your home directory create: `~/gopath/src/github.com/letsencrypt/boulder` and place all the files there.(the files that are 
+currently in `https://github.com/mami-project/lurk/tree/master/serverSTAR_v2`. 
+NOTE: When you finish copying, everything must be inside letsencrypt/boulder/. Doing an `$ls` in `letsencrypt/boulder/` must return the 
+files that are currently under serverSTAR_v2).
+Place 
 Using "$git clone https://github.com/mami-project/lurk" is the fastest way to download all the server files, however, because clone command
 downloads the full repo you will have to manually delete all the other directories that are used for client and proxy.
 
