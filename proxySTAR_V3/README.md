@@ -8,7 +8,7 @@
 
 - Round-Trips Guide --> In depth explanation of every step in STAR
 
-**File current_version.md contains an upadted summary.**
+**File current_version.md contains an updated summary.**
 
 
 ## Parts involved in STAR
